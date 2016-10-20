@@ -14,7 +14,7 @@ def main():
 
     args = parser.parse_args()
 
-    print "\n{0}\n{1}\n{0}\n".format('*' * 50, 'GFW Country Pages Analysis v1.0')
+    print "\n{0}\n{1}\n{0}\n".format('*' * 50, 'GFW Country Pages Analysis v2.0')
 
     val.validate_inputs(args.dataset)
 

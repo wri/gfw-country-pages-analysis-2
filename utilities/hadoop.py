@@ -29,7 +29,7 @@ def pip(dataset_technical_name, dataset_country_dict):
         hadoop_config_list.append(config)
         associated_dataset_list.append(associated_dataset_name)
 
-    s3_result_list = run_pip(hadoop_config_list)
+    s3_result_list = run_pip.run(hadoop_config_list)
 
     local_result_list = download_results(associated_dataset_list, s3_result_list)
 
