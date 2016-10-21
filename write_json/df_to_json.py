@@ -8,28 +8,29 @@ def move_key_value(df_dict, climate):
 
         temp_dict = {}
 
-
+        conf_values = {2: "unconfirmed", 3: "confirmed"}
         if climate:
             temp_dict['country_iso'] = key_tuple[0]
             temp_dict['state_iso'] = key_tuple[1]
             temp_dict['year'] = key_tuple[3]
-            temp_dict['confidence'] = key_tuple[4]
+            temp_dict['confidence'] = conf_values[key_tuple[4]]
             temp_dict['alerts'] = int(value_dict['alerts'])
             temp_dict['week'] = int(key_tuple[2])
-            temp_dict['prf'] = key_tuple[5]
+            # temp_dict['prf'] = key_tuple[5]
 
             temp_dict['above_ground_carbon_loss'] = round(value_dict['above_ground_carbon_loss'], 4)
-            temp_dict['loss'] = round(float(value_dict['area_m2'])/10000, 4)
+            temp_dict['loss_ha'] = round(float(value_dict['area_m2'])/10000, 4)
 
             final_list.append(temp_dict)
         else:
             temp_dict['country_iso'] = key_tuple[0]
             temp_dict['state_iso'] = key_tuple[1]
             temp_dict['year'] = key_tuple[3]
-            temp_dict['confidence'] = key_tuple[4]
+            temp_dict['confidence'] = conf_values[key_tuple[4]]
             temp_dict['day'] = int(key_tuple[2])
 
             temp_dict['alerts'] = int(value_dict['alerts'])
+
 
             final_list.append(temp_dict)
 

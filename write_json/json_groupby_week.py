@@ -29,7 +29,7 @@ def cum_values(climate_dict):
         # then get all states less than the current week in the for loop
         filtered_state_week = list(filter(lambda w: w['week'] <= loss_emiss_dict['week'], filtered_state))
 
-        cumm_loss = sum(d['loss'] for d in filtered_state_week)
+        cumm_loss = sum(d['loss_ha'] for d in filtered_state_week)
         cumm_emiss = sum(d['above_ground_carbon_loss'] for d in filtered_state_week)
 
         # create a key for cumulative loss and carbon loss and populate it with value

@@ -48,7 +48,7 @@ def output_json(pip_outputs, climate):
         df = df[df['confidence'] == 3]
 
         # filter: where prf is 1 or where other countries exist
-        df = df[(df['prf'] == 1) | (df['country_iso'].isin(['BRA', 'PER', 'COG', 'RUS', 'UGA']))]
+        df = df[(df['prf'] == 1) | (df['country_iso'].isin(['BRA', 'PER', 'COG', 'UGA']))]
 
         # calculate week number
         df['week'] = df.apply(lambda x: build_week_lookup(x['day'], x['year']), axis=1)
@@ -77,7 +77,7 @@ def output_json(pip_outputs, climate):
         df = df[(df['confidence'] == 3) | (df['confidence'] == 2)]
 
         # group by day and year, then sum
-        df_groupby = df.groupby(['country_iso', 'state_iso', 'day', 'year', 'confidence', 'prf'])[
+        df_groupby = df.groupby(['country_iso', 'state_iso', 'day', 'year', 'confidence'])[
             'alerts', 'above_ground_carbon_loss', 'area_m2'].sum()
 
         # df -> dict, so we can run the cumulative values
@@ -86,5 +86,9 @@ def output_json(pip_outputs, climate):
         # write climate outputs to final file
         write_outputs(values_dict, results_dir, climate)
 
-# output_json(True)
-# output_json(False)
+output_json(r"C:\Users\samantha.gibbes\Documents\GitHub\gfw-country-pages-analysis-2\results\New folder\gadm2_boundary.csv",
+            True)
+
+output_json(
+    r"C:\Users\samantha.gibbes\Documents\GitHub\gfw-country-pages-analysis-2\results\New folder\gadm2_boundary.csv",
+    False)
