@@ -4,8 +4,6 @@ from retrying import retry
 import util
 
 api_url = r'http://production-api.globalforestwatch.org'
-# api_url = r'http://api.resourcewatch.org'
-# api_url = r'http://staging-api.globalforestwatch.org'
 
 token = util.load_json_from_token('dataset_api_creds.json')['token']
 headers = {'Content-Type': 'application/json', 'Authorization': 'Bearer {0}'.format(token)}

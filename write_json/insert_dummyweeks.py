@@ -19,10 +19,6 @@ def insert_dummy_cumulative_rows(record_list):
             if row['country_iso'] == country.iso:
                 country.add_row(row)
 
-        country.add_dummy_rows()
-
-        country_list_with_dummy_rows = country.to_rows()
-
-        final_row_list.extend(country_list_with_dummy_rows)
+        final_row_list.extend(country.to_rows())
 
     return final_row_list

@@ -18,11 +18,11 @@ def main():
 
     val.validate_inputs(args.dataset)
 
+    # Build layer based on this config table:
+    # https://docs.google.com/spreadsheets/d/174wtlPMWENa1FCYXHqzwvZB5vi7DjLwX-oQjaUEdxzo/edit#gid=923735044
     layer = l.Layer(args.dataset, args.test)
 
     layer.get_associated_datasets(args.associated)
-
-    # Start emr cluster here
 
     layer.calculate_summary_values()
 
