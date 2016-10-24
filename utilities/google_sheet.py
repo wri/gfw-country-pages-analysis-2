@@ -88,24 +88,22 @@ def get_hadoop_config(input_dataset_name, associated_dataset_name):
 
 def get_associated_datasets(input_tech_title, input_associated_dataset):
 
-    sheet_name = get_sheet_name(input_tech_title, True)
-    country_list = get_associated_values(sheet_name, 'DATASET_TECHNICAL_NAME', [input_tech_title], 'ISO_code')
-
-    country_dataset_dict = build_country_dataset_dict(input_tech_title, country_list)
-
-    # Remove all {dataset_name: [country list] keys from the dictionary except for
-    # the countries that match the input_associated_dataset
     if input_associated_dataset:
-        country_dataset_dict = {dataset: country_dataset_dict[dataset] for dataset in [input_associated_dataset]}
+        associated_dataset_list = [input_associated_dataset]
+    else:
+        sheet_name = get_sheet_name(input_tech_title, True)
+        country_list = get_associated_values(sheet_name, 'DATASET_TECHNICAL_NAME', [input_tech_title], 'ISO_code')
 
-    return country_dataset_dict
+        associated_dataset_list = build_associated_dataset_list(input_tech_title, country_list)
+
+    return associated_dataset_list
 
 
-def build_country_dataset_dict(input_tech_title, country_list):
+def build_associated_dataset_list(input_tech_title, country_list):
 
     sheet_name = get_sheet_name(input_tech_title, False)
 
-    out_dict = {}
+    out_list = {}
 
     gdoc_as_lists = get_all_gdoc_rows(sheet_name)
     header_row = gdoc_as_lists[0]
@@ -116,12 +114,10 @@ def build_country_dataset_dict(input_tech_title, country_list):
         iso_code = row_dict['ISO_code']
         if iso_code in country_list:
             dataset = row_dict['DATASET_TECHNICAL_NAME']
-            try:
-                out_dict[dataset].append(iso_code)
-            except KeyError:
-                out_dict[dataset] = [iso_code]
 
-    return out_dict
+            out_list.append(dataset)
+
+    return out_list
 
 
 def get_sheet_name(input_tech_title, same_sheet=True):
@@ -165,38 +161,6 @@ class SheetLayerDef(object):
     # Source: http://stackoverflow.com/a/1305663/4355916
     def __init__(self, **entries):
         self.__dict__.update(entries)
-
-
-def find_dataset_name_in_sheet(dataset_technical_name, sheet_name):
-
-    dataset_layer_def = None
-
-    gdoc_data_rows = get_all_gdoc_rows(sheet_name)
-
-    header_row = gdoc_data_rows[0]
-
-    for row in gdoc_data_rows[1:]:
-
-        # Could hardcode the name of a field here, but better
-        # to just keep it the first field in the spreadsheet, I think
-        if row[0] == dataset_technical_name:
-
-            row_dict = dict(zip(header_row, row))
-            dataset_layer_def = SheetLayerDef(**row_dict)
-            break
-
-    return dataset_layer_def
-
-
-def get_dataset_info(dataset_technical_name):
-
-    for layer_type in ['forest_change', 'contextual_layers']:
-        layer_object = find_dataset_name_in_sheet(dataset_technical_name, layer_type)
-
-        if layer_object:
-            break
-
-    return layer_type, layer_object
 
 
 def get_api_endpoint(dataset1, dataset2, is_test):

@@ -17,12 +17,12 @@ sys.path.append(external_dir)
 from hadoop_pip import run_pip
 
 
-def pip(dataset_technical_name, dataset_country_dict):
+def pip(dataset_technical_name, associated_datset_list):
 
     associated_dataset_list = []
     hadoop_config_list = []
 
-    for associated_dataset_name in dataset_country_dict.keys():
+    for associated_dataset_name in associated_datset_list:
 
         config = gs.get_hadoop_config(dataset_technical_name, associated_dataset_name)
 

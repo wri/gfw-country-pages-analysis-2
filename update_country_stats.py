@@ -26,8 +26,6 @@ def main():
 
     layer.calculate_summary_values()
 
-    layer.write_results_to_s3()
-
     layer.push_to_gfw_api()
 
 
