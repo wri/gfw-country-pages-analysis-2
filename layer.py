@@ -26,6 +26,7 @@ class Layer(object):
 
         self.results_list = hadoop.pip(self.dataset_technical_name, self.associated_dataset_list)
         # self.results_list = [['gadm2_boundary', r"C:\Users\CHofmann\Desktop\gadm2_boundary.csv"]]
+        # self.results_list = [['gadm1_boundary', r"D:\scripts\gfw-country-pages-analysis-2\results\gadm1_boundary.csv"]]
 
         for associated_dataset_name, local_path in self.results_list:
 
@@ -33,27 +34,30 @@ class Layer(object):
             cp_api_endpoint = gs.get_api_endpoint(self.dataset_technical_name, associated_dataset_name, self.is_test)
 
             # Process the hadoop CSV into JSON, and write the output
-            output_json.output_json(local_path, cp_api_endpoint.json_file)
+            output_json.output_json(local_path, cp_api_endpoint)
 
             # Add dataset ID and S3 URL of matching dataset to the update_api_dict
             self.update_api_dict[cp_api_endpoint.dataset_id] = cp_api_endpoint.web_url
 
             # If the datasets being processed are GLAD and gadm2, write climate output too
             if {self.dataset_technical_name, associated_dataset_name} == {'umd_landsat_alerts', 'gadm2_boundary'}:
-                climate_name = self.dataset_technical_name + '_climate'
+                self.update_climate(local_path)
 
-                # Grab the outfile location on F:\ for the dataset/associated dataset/climate/test combination
-                climate_api_endpoint = gs.get_api_endpoint(climate_name, associated_dataset_name, self.is_test)
+    def update_climate(self, local_path):
+        climate_name = self.dataset_technical_name + '_climate'
 
-                # Process the hadoop CSV into JSON, and write the output
-                output_json.output_json(local_path, climate_api_endpoint.json_file, climate=True)
+        # Grab the outfile location on F:\ for the dataset/associated dataset/climate/test combination
+        climate_api_endpoint = gs.get_api_endpoint(climate_name, 'gadm2_boundary', self.is_test)
 
-                # Add dataset ID and S3 URL of matching dataset to the update_api_dict
-                self.update_api_dict[climate_api_endpoint.dataset_id] = climate_api_endpoint.web_url
+        # Process the hadoop CSV into JSON, and write the output
+        output_json.output_json(local_path, climate_api_endpoint, climate=True)
+
+        # Add dataset ID and S3 URL of matching dataset to the update_api_dict
+        self.update_api_dict[climate_api_endpoint.dataset_id] = climate_api_endpoint.web_url
 
     def push_to_gfw_api(self):
 
         for api_dataset_id, s3_url in self.update_api_dict.iteritems():
-            print 'Pushing {0} to dataset ID {1} on the GFW country pages API'.format(s3_url, api_dataset_id)
 
+            print 'Pushing {0} to dataset ID {1} on the GFW country pages API'.format(s3_url, api_dataset_id)
             api.sync(api_dataset_id, s3_url)

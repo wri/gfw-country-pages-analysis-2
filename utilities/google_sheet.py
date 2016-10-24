@@ -148,8 +148,9 @@ def _open_spreadsheet(sheet_name):
     # http://gspread.readthedocs.org/en/latest/oauth2.html
     root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     spreadsheet_file = os.path.join(root_dir, 'tokens', 'spreadsheet.json')
-    credentials = ServiceAccountCredentials.from_json_keyfile_name(spreadsheet_file,
-                                                                   ['https://spreadsheets.google.com/feeds'])
+
+    cred_list = ['https://spreadsheets.google.com/feeds']
+    credentials = ServiceAccountCredentials.from_json_keyfile_name(spreadsheet_file, cred_list)
 
     gc = gspread.authorize(credentials)
     wks = gc.open_by_key(dataset_lookup_key).worksheet(sheet_name)

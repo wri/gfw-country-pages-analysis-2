@@ -1,4 +1,4 @@
-import pandas
+import pandas as pd
 import json
 import os
 
@@ -8,10 +8,10 @@ from json_groupby_week import cum_values
 from insert_dummyweeks import insert_dummy_cumulative_rows
 
 
-def write_outputs(values_dict, output_json_file):
+def write_outputs(records_list, output_json_file):
 
     # add list of dictionaries as value for "data" key
-    final_dict = {"data": values_dict}
+    final_dict = {"data": records_list}
 
     # write to json
     with open(output_json_file, 'w') as outfile:
@@ -21,19 +21,43 @@ def write_outputs(values_dict, output_json_file):
     csv_results = os.path.splitext(output_json_file)[0] + '.csv'
 
     # write to csv
-    df = pandas.DataFrame(values_dict)
+    df = pd.DataFrame(records_list)
     df.to_csv(csv_results)
 
 
-def output_json(pip_result_csv, output_json_file, climate=False):
+def output_json(pip_result_csv, api_endpoint_object, climate=False):
+    """
+    Take the local output from the Hadoop PIP process and write a JSON file
+    :param pip_result_csv: the local hadoop PIP CSV
+    :param api_endpoint_object: a row from the config sheet:
+     https://docs.google.com/spreadsheets/d/174wtlPMWENa1FCYXHqzwvZB5vi7DjLwX-oQjaUEdxzo/edit#gid=923735044
+    :param climate: whether or not to run climate processing
+    :return:
+    """
 
     # csv to pandas data frame
-    field_names = ['confidence', 'year', 'day', 'area_m2', 'above_ground_carbon_loss', 'prf',
-                   'country_iso', 'state_iso', 'dist_iso', 'alerts']
-    pandas_csv = pandas.read_csv(pip_result_csv, names=field_names)
-    df = pandas.DataFrame(pandas_csv)
+    field_names = api_endpoint_object.csv_field_names.split(',')
+    df = pd.read_csv(pip_result_csv, names=field_names)
 
-    if climate:
+    # If we're working with glad alerts, need to do some specific filtering
+    # and need to sum by alerts
+    if api_endpoint_object.forest_dataset == 'umd_landsat_alerts':
+
+        # filter valid confidence only
+        df = df[(df['confidence'] == 2) | (df['confidence'] == 3)]
+
+        # group by day and year, then sum
+        groupby_list = ['country_iso', 'state_iso', 'day', 'year', 'confidence']
+
+        # df_groupby = df.groupby(groupby_list)['alerts', 'above_ground_carbon_loss', 'area_m2'].sum()
+        df_groupby = df.groupby(groupby_list)['alerts', ].sum()
+
+        # df -> list of records
+        final_record_list = df_to_json(df_groupby)
+
+    # Custom process/filtering for climate data
+    elif climate:
+
         # filter: confirmed only
         df = df[df['confidence'] == 3]
 
@@ -60,16 +84,10 @@ def output_json(pip_result_csv, output_json_file, climate=False):
         # fill in missing weeks data for glad 2016 only
         final_record_list = insert_dummy_cumulative_rows(cum_record_list)
 
+    # Otherwise the output from hadoop_pip is already summarized for us, just need
+    # to put it in [row, row, row, ...] format
     else:
-        # filter valid confidence only
-        df = df[(df['confidence'] == 2) | (df['confidence'] == 3)]
+        final_record_list = df.to_dict('records')
 
-        # group by day and year, then sum
-        groupby_list = ['country_iso', 'state_iso', 'day', 'year', 'confidence']
-        df_groupby = df.groupby(groupby_list)['alerts', 'above_ground_carbon_loss', 'area_m2'].sum()
-
-        # df -> dict, so we can run the cumulative values
-        final_record_list = df_to_json(df_groupby, climate)
-
-    # write climate outputs to final file
-    write_outputs(final_record_list, output_json_file)
+    # write outputs to final file
+    write_outputs(final_record_list, api_endpoint_object.json_file)

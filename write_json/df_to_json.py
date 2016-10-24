@@ -29,7 +29,7 @@ def move_key_value(df_dict, climate):
     return final_list
 
 
-def df_to_json(data_frame, climate):
+def df_to_json(data_frame, climate=False):
 
     df_transp = data_frame.transpose()
 
