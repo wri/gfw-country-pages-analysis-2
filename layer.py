@@ -26,7 +26,6 @@ class Layer(object):
 
         self.results_list = hadoop.pip(self.dataset_technical_name, self.associated_dataset_list)
         # self.results_list = [['gadm2_boundary', r"C:\Users\CHofmann\Desktop\gadm2_boundary.csv"]]
-        # self.results_list = [['gadm1_boundary', r"D:\scripts\gfw-country-pages-analysis-2\results\gadm1_boundary.csv"]]
 
         for associated_dataset_name, local_path in self.results_list:
 

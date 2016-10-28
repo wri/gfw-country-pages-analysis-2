@@ -1,5 +1,6 @@
 import pandas as pd
 import json
+import subprocess
 import os
 
 from json_groupby_week import build_week_lookup
@@ -8,21 +9,31 @@ from json_groupby_week import cum_values
 from insert_dummyweeks import insert_dummy_cumulative_rows
 
 
-def write_outputs(records_list, output_json_file):
+def write_outputs(records_list, output_s3_path):
+
+    root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    results_dir = os.path.join(root_dir, 'results')
+
+    basename = os.path.basename(output_s3_path)
+    local_json_file = os.path.join(results_dir, basename)
 
     # add list of dictionaries as value for "data" key
     final_dict = {"data": records_list}
 
     # write to json
-    with open(output_json_file, 'w') as outfile:
+    with open(local_json_file, 'w') as outfile:
         json.dump(final_dict, outfile)
 
     # add csv file to output
-    csv_results = os.path.splitext(output_json_file)[0] + '.csv'
+    csv_results = os.path.splitext(local_json_file)[0] + '_processed.csv'
 
     # write to csv
     df = pd.DataFrame(records_list)
     df.to_csv(csv_results)
+
+    # push to aws
+    cmd = ['aws', 's3', 'cp', local_json_file, output_s3_path]
+    subprocess.check_call(cmd)
 
 
 def output_json(pip_result_csv, api_endpoint_object, climate=False):
@@ -90,4 +101,5 @@ def output_json(pip_result_csv, api_endpoint_object, climate=False):
         final_record_list = df.to_dict('records')
 
     # write outputs to final file
-    write_outputs(final_record_list, api_endpoint_object.json_file)
+    write_outputs(final_record_list, api_endpoint_object.s3_url)
+
