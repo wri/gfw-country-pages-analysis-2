@@ -11,7 +11,7 @@ def move_key_value(df_dict, climate):
         temp_dict = {}
 
         temp_dict['country_iso'] = key_tuple[0]
-        temp_dict['state_iso'] = key_tuple[1]
+        temp_dict['state_id'] = key_tuple[1]
         temp_dict['year'] = key_tuple[3]
         temp_dict['confidence'] = conf_values[key_tuple[4]]
         temp_dict['alerts'] = int(value_dict['alerts'])
@@ -39,7 +39,7 @@ def df_to_json(data_frame, climate=False):
     # move our tuple key into the values part
     final_list = move_key_value(df_dict, climate)
 
-    row_keys = ['country_iso', 'state_iso', 'year']
+    row_keys = ['country_iso', 'state_id', 'year']
 
     if climate:
         row_keys.append('week')

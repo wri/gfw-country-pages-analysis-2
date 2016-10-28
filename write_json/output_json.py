@@ -47,7 +47,7 @@ def output_json(pip_result_csv, api_endpoint_object, climate=False):
         df = df[(df['confidence'] == 2) | (df['confidence'] == 3)]
 
         # group by day and year, then sum
-        groupby_list = ['country_iso', 'state_iso', 'day', 'year', 'confidence']
+        groupby_list = ['country_iso', 'state_id', 'day', 'year', 'confidence']
 
         # df_groupby = df.groupby(groupby_list)['alerts', 'above_ground_carbon_loss', 'area_m2'].sum()
         df_groupby = df.groupby(groupby_list)['alerts', ].sum()
@@ -72,7 +72,7 @@ def output_json(pip_result_csv, api_endpoint_object, climate=False):
         df.ix[df.week == 53, 'year'] = 2015
 
         # group by week and year, then sum
-        groupby_list = ['country_iso', 'state_iso', 'week', 'year', 'confidence', 'prf']
+        groupby_list = ['country_iso', 'state_id', 'week', 'year', 'confidence', 'prf']
         df_groupby = df.groupby(groupby_list)['alerts', 'above_ground_carbon_loss', 'area_m2'].sum()
 
         # df -> list of records, so we can run the cumulative values

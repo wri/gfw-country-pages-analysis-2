@@ -21,7 +21,7 @@ def cum_values(climate_dict):
     for loss_emiss_dict in climate_dict:
 
         # for each dictionary in the list, get all dictionaries for the state and year
-        filtered_state = list(filter(lambda s: s['state_iso'] == loss_emiss_dict['state_iso']
+        filtered_state = list(filter(lambda s: s['state_id'] == loss_emiss_dict['state_id']
                                                and s['country_iso'] == loss_emiss_dict['country_iso']
                                                and s['year'] == loss_emiss_dict['year'], climate_dict))
 
