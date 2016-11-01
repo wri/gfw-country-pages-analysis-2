@@ -28,6 +28,13 @@ def pip(dataset_technical_name, associated_dataset_list):
 
     s3_result_list = run_pip.run(hadoop_config_list)
 
+    # Response from hadoop comes back as list of lists
+    # Example: [[s3://gfw2-data/alerts-tsv/hadoop-jobs/bb858284-8c4d-4e00-8473-69cef650a7f3/output1.csv",
+    # r"r"s3://gfw2-data/alerts-tsv/peru_export.csv"]]
+
+    # We may have submitted multiple jobs, but for each we only want the first item in the list
+    s3_result_list = [x[0] for x in s3_result_list]
+
     local_result_list = download_results(associated_dataset_list, s3_result_list)
 
     return zip(associated_dataset_list, local_result_list)
