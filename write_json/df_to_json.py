@@ -15,6 +15,8 @@ def move_key_value(df_dict, climate):
         temp_dict['year'] = key_tuple[3]
         temp_dict['confidence'] = conf_values[key_tuple[4]]
         temp_dict['alerts'] = int(value_dict['alerts'])
+        temp_dict['state_iso'] = key_tuple[0] + str(key_tuple[1])
+
 
         if climate:
             temp_dict['week'] = int(key_tuple[2])

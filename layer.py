@@ -24,8 +24,8 @@ class Layer(object):
 
     def calculate_summary_values(self):
 
-        self.results_list = hadoop.pip(self.dataset_technical_name, self.associated_dataset_list)
-        # self.results_list = [['gadm2_boundary', r"C:\Users\CHofmann\Desktop\gadm2_boundary.csv"]]
+        # self.results_list = hadoop.pip(self.dataset_technical_name, self.associated_dataset_list)
+        self.results_list = [['gadm2_boundary', r"C:\Users\samantha.gibbes\Documents\GitHub\gfw-country-pages-analysis-2\results\gadm2_boundary.csv"]]
 
         for associated_dataset_name, local_path_list in self.results_list:
 

@@ -43,7 +43,7 @@ class Year(object):
     def add_dummy_row(self, state, week):
 
         dummydict = {u'week': week, u'year': self.year_val, u'state_id': state, u'country_iso': self.iso,
-                     u'loss': 0.0, u'alerts': 0, u'above_ground_carbon_loss': 0.0, u'confidence': 3}
+                     u'loss_ha': 0.0, u'alerts': 0, u'above_ground_carbon_loss': 0.0, u'confidence': 3}
 
         weeknum = weekoffset(self.rows, self.year_val, state, week)
 
