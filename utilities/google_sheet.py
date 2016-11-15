@@ -184,4 +184,8 @@ def get_api_endpoint(dataset1, dataset2, is_test):
             api_endpoint_def = SheetLayerDef(**row_dict)
             break
 
+    if api_endpoint_def is None:
+        raise ValueError("No matching record in the google "
+                         "sheet for datasets: {}, {} and version {}".format(dataset1, dataset2, is_test_dict[is_test]))
+
     return api_endpoint_def
