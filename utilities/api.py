@@ -33,6 +33,9 @@ def make_request(api_endpoint, request_type, payload, status_code_required, json
     elif request_type == 'DELETE':
         r = requests.delete(api_endpoint, headers=headers, json=payload)
 
+    elif request_type == 'PATCH':
+        r = requests.patch(api_endpoint, headers=headers, json=payload)
+
     else:
         raise ValueError('Unknown request_type {0}'.format(request_type))
 
@@ -53,12 +56,12 @@ def make_request(api_endpoint, request_type, payload, status_code_required, json
 
 
 def create_dataset(s3_path):
-    datasets_url = r'{0}/datasets'.format(api_url)
+    datasets_url = r'{0}/dataset'.format(api_url)
     payload = {"dataset": {"connector_type": "json", "connector_provider": "rwjson",
                            "dataset_attributes":
-                               {"application": ["gfw"], "name": "Terra-I alerts tabulated by GADM1 boundaries",
+                               {"application": ["gfw"], "name": "UMD Loss Area Tabulated by GADM2",
                                 "data_path": "data",
-                                "tags": ["terrai", "terra-i", "gadm1"]},
+                                "tags": ["UMD", "Loss", "gadm2", "threshold"]},
                            "connector_url": s3_path
                            }}
 
@@ -73,7 +76,7 @@ def append_from_json_file(dataset_id, s3_url):
 
     print 'Appending from JSON file {0} to {1}'.format(s3_url, dataset_id)
 
-    dataset_url = r'{0}/datasets/{1}'.format(api_url, dataset_id)
+    dataset_url = r'{0}/dataset/{1}'.format(api_url, dataset_id)
     new_data_url = r'{0}/data'.format(dataset_url)
 
     payload = {"dataset": {"connector_url": s3_url, "data_path": "data"}}
@@ -82,7 +85,7 @@ def append_from_json_file(dataset_id, s3_url):
 
 
 def check_creation_status(dataset_id):
-    dataset_url = r'{0}/datasets/{1}'.format(api_url, dataset_id)
+    dataset_url = r'{0}/dataset/{1}'.format(api_url, dataset_id)
 
     dataset_status = make_request(dataset_url, 'GET', None, 200, ['meta', 'status'])
 
@@ -92,10 +95,12 @@ def check_creation_status(dataset_id):
 def truncate_dataset(dataset_id):
 
     print 'Truncating dataset: {0}'.format(dataset_id)
-    dataset_url = r'{0}/datasets/{1}'.format(api_url, dataset_id)
+    dataset_url = r'{0}/dataset/{1}'.format(api_url, dataset_id)
 
     modify_attributes_payload = {"dataset": {"dataset_attributes": {"data_overwrite": True}}}
+    # modify_attributes_payload = {"dataset": {"data_overwrite": True}}
     make_request(dataset_url, 'PUT', modify_attributes_payload, 200)
+    # make_request(dataset_url, 'PATCH', modify_attributes_payload, 200)
 
     data_overwrite_url = r'{0}/data-overwrite'.format(dataset_url)
     overwrite_payload = {"dataset": {"data": []}}
@@ -114,7 +119,7 @@ def confirm_dataset_saved(dataset_id):
 
 def delete_dataset(dataset_id):
 
-    dataset_url = r'{0}/datasets/{1}'.format(api_url, dataset_id)
+    dataset_url = r'{0}/dataset/{1}'.format(api_url, dataset_id)
 
     payload = {"dataset": {"dataset_attributes": {"data_overwrite": True}}}
 
