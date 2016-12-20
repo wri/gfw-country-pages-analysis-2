@@ -76,10 +76,9 @@ def create_dataset(s3_path):
 def append_from_json_file(dataset_id, s3_url):
     print 'Appending from JSON file {0} to {1}'.format(s3_url, dataset_id)
 
-    dataset_url = r'{0}/dataset/{1}'.format(api_url, dataset_id)
-    new_data_url = r'{0}/data'.format(dataset_url)
+    new_data_url = r'{0}/dataset/{1}/data'.format(api_url, dataset_id)
 
-    payload = {"dataset": {"connector_url": s3_url, "data_path": "data"}}
+    payload = {"dataset": {"connectorUrl": s3_url, "data_path": "data"}}
 
     make_request(new_data_url, 'POST', payload, 200)
 

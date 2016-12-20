@@ -32,7 +32,7 @@ def write_outputs(records_list, output_s3_path):
     df.to_csv(csv_results)
 
     # push to aws
-    cmd = ['aws', 's3', 'cp', local_json_file, output_s3_path]
+    cmd = ['aws', 's3', 'cp', '--content-type', r'application/json', local_json_file, output_s3_path]
     subprocess.check_call(cmd)
 
 
