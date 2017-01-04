@@ -63,10 +63,13 @@ def get_associated_values(sheet_name, input_col_name, column_value_list, output_
     return [x[output_col_name] for x in filtered_rows]
 
 
-def get_hadoop_config(input_dataset_name, associated_dataset_name):
+def get_hadoop_config(input_dataset_name, associated_dataset_name, is_test):
+
+    version_dict = {True: 'DEV', False: 'PROD'}
+    version = version_dict[is_test]
 
     hadoop_config = None
-    input_tuple = (input_dataset_name, associated_dataset_name)
+    input_tuple = (input_dataset_name, associated_dataset_name, version)
 
     hadoop_rows = get_all_gdoc_rows('hadoop')
     header_row = hadoop_rows[0]
@@ -74,7 +77,7 @@ def get_hadoop_config(input_dataset_name, associated_dataset_name):
     for row in hadoop_rows[1:]:
         row_dict = dict(zip(header_row, row))
 
-        row_tuple = (row_dict['forest_dataset'], row_dict['contextual_dataset'])
+        row_tuple = (row_dict['forest_dataset'], row_dict['contextual_dataset'], row_dict['version'])
 
         if set(row_tuple) == set(input_tuple):
             root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

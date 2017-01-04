@@ -17,13 +17,13 @@ sys.path.append(external_dir)
 from hadoop_pip import run_pip
 
 
-def pip(dataset_technical_name, associated_dataset_list):
+def pip(dataset_technical_name, associated_dataset_list, is_test):
 
     hadoop_config_list = []
 
     for associated_dataset_name in associated_dataset_list:
 
-        config = gs.get_hadoop_config(dataset_technical_name, associated_dataset_name)
+        config = gs.get_hadoop_config(dataset_technical_name, associated_dataset_name, is_test)
         hadoop_config_list.append(config)
 
     s3_result_list = run_pip.run(hadoop_config_list)
