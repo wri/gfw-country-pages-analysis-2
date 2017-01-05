@@ -33,7 +33,7 @@ class Layer(object):
             cp_api_endpoint = gs.get_api_endpoint(self.dataset_technical_name, associated_dataset_name, self.is_test)
 
             # Process the hadoop CSV into JSON, and write the output
-            output_json.output_json(local_path_list, cp_api_endpoint)
+            output_json.output_json(local_path_list, cp_api_endpoint, self.is_test)
 
             # Add dataset ID and S3 URL of matching dataset to the update_api_dict
             self.update_api_dict[cp_api_endpoint.dataset_id] = cp_api_endpoint.web_url
@@ -49,7 +49,7 @@ class Layer(object):
         climate_api_endpoint = gs.get_api_endpoint(climate_name, 'gadm2_boundary', self.is_test)
 
         # Process the hadoop CSV into JSON, and write the output
-        output_json.output_json(local_path, climate_api_endpoint, climate=True)
+        output_json.output_json(local_path, climate_api_endpoint, self.is_test, climate=True)
 
         # Add dataset ID and S3 URL of matching dataset to the update_api_dict
         self.update_api_dict[climate_api_endpoint.dataset_id] = climate_api_endpoint.web_url
