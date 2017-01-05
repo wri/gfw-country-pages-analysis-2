@@ -78,7 +78,7 @@ def output_json(pip_result_csv, api_endpoint_object, is_test, climate=False):
         country_list = ['BRA', 'PER', 'COG', 'UGA']
 
         if is_test:
-            country_list += ['TLS', 'CMR', 'MYS', 'COD', 'GAB', 'BRN', 'CAF', 'GNQ', 'PNG']
+            country_list += ['TLS', 'CMR', 'MYS', 'COD', 'GAB', 'BRN', 'CAF', 'GNQ', 'PNG', 'SGP']
 
         df = df[(df['prf'] == 1) | (df['country_iso'].isin(country_list))]
 
