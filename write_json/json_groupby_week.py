@@ -16,7 +16,19 @@ def cum_values(climate_dict):
                         'COG': {'emiss_t': 9.202262991, 'defor_t': 14594.16161},
                         'BRA': {'emiss_t': 229.5, 'defor_t': 965000.0},
                         'PER': {'emiss_t': 23.46251872, 'defor_t': 67526.67565},
-                        'UGA': {'emiss_t': 5.5, 'defor_t': 18590}}
+                        'UGA': {'emiss_t': 5.5, 'defor_t': 18590},
+                        ##### DUMMY VALUES BELOW--  NEED TO FILL THESE IN WITH REAL DATA BEFORE LAUNCH
+                        ##### Also need to fix IDN value-- currently for just kalimantan
+                        'BRN': {'emiss_t': 5.5, 'defor_t': 18590},
+                        'TLS': {'emiss_t': 5.5, 'defor_t': 18590},
+                        'CMR': {'emiss_t': 5.5, 'defor_t': 18590},
+                        'MYS': {'emiss_t': 5.5, 'defor_t': 18590},
+                        'COD': {'emiss_t': 5.5, 'defor_t': 18590},
+                        'GAB': {'emiss_t': 5.5, 'defor_t': 18590},
+                        'CAF': {'emiss_t': 5.5, 'defor_t': 18590},
+                        'GNQ': {'emiss_t': 5.5, 'defor_t': 18590},
+                        'PNG': {'emiss_t': 5.5, 'defor_t': 18590},
+                        'SGP': {'emiss_t': 5.5, 'defor_t': 18590}}
 
     for loss_emiss_dict in climate_dict:
 
