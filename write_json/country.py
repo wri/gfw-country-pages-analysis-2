@@ -45,7 +45,7 @@ class Year(object):
         state_iso = self.iso + str(state)
 
         dummydict = {u'week': week, u'year': self.year_val, u'state_id': state, u'country_iso': self.iso,
-                     u'loss_ha': 0.0, u'alerts': 0, u'above_ground_carbon_loss': 0.0, u'confidence': 3,
+                     u'loss_ha': 0.0, u'alerts': 0, u'above_ground_carbon_loss': 0.0, u'confidence': u'confirmed',
                      u'state_iso': state_iso}
 
         weeknum = weekoffset(self.rows, self.year_val, state, week)
@@ -112,10 +112,10 @@ class Country(object):
 
 def weekoffset(rows, year, state, weeknum):
 
-    first_week_dict = {2015: 0, 2016: 53}
+    first_week_dict = {2015: 0, 2016: 53, 2017: 53}
 
     # We can't replace data for week 53
-    if weeknum == 53 and year == 2016:
+    if weeknum == 53 and year > 2015:
         new_week = None
 
     else:
@@ -123,11 +123,12 @@ def weekoffset(rows, year, state, weeknum):
 
         for w in range(start_week, -1, -1):
             # If we've already tried week #1, try #53
-            if w == 0 and year == 2016:
+            if w == 0 and year > 2015:
                 w = 53
 
             # If we have valid data for this week, great
             # Leave our for loop and return the new week value
+
             if w in rows[state]:
                 new_week = w
                 break
