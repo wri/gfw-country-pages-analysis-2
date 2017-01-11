@@ -33,7 +33,7 @@ def write_outputs(records_list, output_s3_path):
 
     # push to aws
     cmd = ['aws', 's3', 'cp', '--content-type', r'application/json', local_json_file, output_s3_path]
-    # subprocess.check_call(cmd)
+    subprocess.check_call(cmd)
 
 
 def output_json(pip_result_csv, api_endpoint_object, is_test, climate=False):
@@ -84,6 +84,7 @@ def output_json(pip_result_csv, api_endpoint_object, is_test, climate=False):
 
         # 1/1/2016 should be categorized as week 53 of 2015. This code creates that proper combination of
         # week# and year based on ISO calendar
+
         df['week'], df['year'] = zip(*df.apply(lambda row: build_week_lookup(row['day'], row['year']), axis=1))
 
         # group by week and year, then sum
