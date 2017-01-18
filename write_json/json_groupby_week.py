@@ -4,10 +4,11 @@ import datetime
 
 def build_week_lookup(day_num, year):
 
-    as_date = datetime.date(year, 1, 1) + datetime.timedelta(day_num)
+    as_date = datetime.date(year, 1, 1) + datetime.timedelta(day_num - 1)
+    year_num = as_date.isocalendar()[0]
     week_num = as_date.isocalendar()[1]
 
-    return week_num
+    return week_num, year_num
 
 
 def cum_values(climate_dict):

@@ -82,11 +82,10 @@ def output_json(pip_result_csv, api_endpoint_object, environment, climate=False)
 
         df = df[(df['prf'] == 1) | (df['country_iso'].isin(country_list))]
 
-        # calculate week number
-        df['week'] = df.apply(lambda x: build_week_lookup(x['day'], x['year']), axis=1)
+        # 1/1/2016 should be categorized as week 53 of 2015. This code creates that proper combination of
+        # week# and year based on ISO calendar
 
-        # if week number is 53, then set year to 2015
-        df.ix[df.week == 53, 'year'] = 2015
+        df['week'], df['year'] = zip(*df.apply(lambda row: build_week_lookup(row['day'], row['year']), axis=1))
 
         # group by week and year, then sum
         groupby_list = ['country_iso', 'state_id', 'week', 'year', 'confidence', 'prf']

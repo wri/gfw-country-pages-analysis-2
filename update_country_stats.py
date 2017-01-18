@@ -27,7 +27,7 @@ def main():
 
     layer.calculate_summary_values()
 
-    layer.push_to_gfw_api()
+    # layer.push_to_gfw_api()
 
 
 if __name__ == "__main__":

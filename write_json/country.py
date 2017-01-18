@@ -18,6 +18,7 @@ class Year(object):
         self.week_list = []
 
     def add_row(self, row):
+        # create a list of all possible weeks of data for this country
         week = row['week']
         state = row['state_id']
 
@@ -25,15 +26,15 @@ class Year(object):
 
         if week not in self.week_list:
             self.week_list.append(week)
-
         if state not in self.state_list:
             self.state_list.append(state)
 
     def add_dummy_rows(self):
-
+        # from the list of weeks possible, get the  max to fill in all missing weeks in between
+        max_week = max(self.week_list)
+        self.week_list = range(1, max_week + 1)
         for s in self.state_list:
             for w in self.week_list:
-
                 if w in self.rows[s]:
                     pass
                 else:
@@ -41,11 +42,11 @@ class Year(object):
                     self.add_dummy_row(s, w)
 
     def add_dummy_row(self, state, week):
-
+        print 'adding dummy rows'
         state_iso = self.iso + str(state)
 
         dummydict = {u'week': week, u'year': self.year_val, u'state_id': state, u'country_iso': self.iso,
-                     u'loss_ha': 0.0, u'alerts': 0, u'above_ground_carbon_loss': 0.0, u'confidence': 3,
+                     u'loss_ha': 0.0, u'alerts': 0, u'above_ground_carbon_loss': 0.0, u'confidence': u'confirmed',
                      u'state_iso': state_iso}
 
         weeknum = weekoffset(self.rows, self.year_val, state, week)
@@ -112,35 +113,36 @@ class Country(object):
 
 def weekoffset(rows, year, state, weeknum):
 
-    first_week_dict = {2015: 0, 2016: 53}
+    # first_week_dict = {2015: 0, 2016: 53, 2017: 53}
+    #
+    # # We can't replace data for week 53
+    # if weeknum == 53 and year == 2016:
+    #     new_week = None
 
-    # We can't replace data for week 53
-    if weeknum == 53 and year == 2016:
-        new_week = None
+    # else:
+    start_week = weeknum - 1
 
-    else:
-        start_week = weeknum - 1
+    for w in range(start_week, -1, -1):
+        # If we've already tried week #1, try #53
+        # if w == 0 and year > 2015:
+        #     w = 53
 
-        for w in range(start_week, -1, -1):
-            # If we've already tried week #1, try #53
-            if w == 0 and year == 2016:
-                w = 53
+        # If we have valid data for this week, great
+        # Leave our for loop and return the new week value
 
-            # If we have valid data for this week, great
-            # Leave our for loop and return the new week value
-            if w in rows[state]:
-                new_week = w
+        if w in rows[state]:
+            new_week = w
+            break
+
+        # If we don't have valid data, continue with the for loop
+        # until we find it
+        else:
+            # If we're trying the very first week of the year, and that still
+            # fails, then nothing possible
+            if w == 0:
+                new_week = None
                 break
-
-            # If we don't have valid data, continue with the for loop
-            # until we find it
             else:
-                # If we're trying the very first week of the year, and that still
-                # fails, then nothing possible
-                if w == first_week_dict[year]:
-                    new_week = None
-                    break
-                else:
-                    pass
+                pass
 
     return new_week
