@@ -42,7 +42,6 @@ class Year(object):
                     self.add_dummy_row(s, w)
 
     def add_dummy_row(self, state, week):
-        print 'adding dummy rows'
         state_iso = self.iso + str(state)
 
         dummydict = {u'week': week, u'year': self.year_val, u'state_id': state, u'country_iso': self.iso,
