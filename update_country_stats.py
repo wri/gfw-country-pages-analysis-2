@@ -9,8 +9,9 @@ def main():
     # Parse commandline arguments
     parser = argparse.ArgumentParser(description='Set input dataset and contextual dataset/country to update.')
     parser.add_argument('--dataset', '-d', required=True, help='the tech title of the dataset that has been updated')
+    parser.add_argument('--environment', '-e', required=True, choices=('prod', 'staging', 'test'),
+                        help='the environment/config files to use')
     parser.add_argument('--associated', '-a', help='option to specify only one associated dataset')
-    parser.add_argument('--test', dest='test', action='store_true', help='flag used if this is a test of the script')
 
     args = parser.parse_args()
 
@@ -20,7 +21,7 @@ def main():
 
     # Build layer based on this config table:
     # https://docs.google.com/spreadsheets/d/174wtlPMWENa1FCYXHqzwvZB5vi7DjLwX-oQjaUEdxzo/edit#gid=923735044
-    layer = l.Layer(args.dataset, args.test)
+    layer = l.Layer(args.dataset, args.environment)
 
     layer.get_associated_datasets(args.associated)
 

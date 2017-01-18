@@ -36,13 +36,13 @@ def write_outputs(records_list, output_s3_path):
     subprocess.check_call(cmd)
 
 
-def output_json(pip_result_csv, api_endpoint_object, is_test, climate=False):
+def output_json(pip_result_csv, api_endpoint_object, environment, climate=False):
     """
     Take the local output from the Hadoop PIP process and write a JSON file
     :param pip_result_csv: the local hadoop PIP CSV
     :param api_endpoint_object: a row from the config sheet:
      https://docs.google.com/spreadsheets/d/174wtlPMWENa1FCYXHqzwvZB5vi7DjLwX-oQjaUEdxzo/edit#gid=923735044
-    :param is_test: used to designate if this is a staging run or not-- if so will include more countries in climate
+    :param environment: used to designate if this is a staging run or not-- if so will include more countries in climate
     :param climate: whether or not to run climate processing
     :return:
     """
@@ -77,7 +77,7 @@ def output_json(pip_result_csv, api_endpoint_object, is_test, climate=False):
         # don't want to include RUS for climate stuff for now
         country_list = ['BRA', 'PER', 'COG', 'UGA']
 
-        if is_test:
+        if environment in ['staging', 'test']:
             country_list += ['TLS', 'CMR', 'MYS', 'COD', 'GAB', 'BRN', 'CAF', 'GNQ', 'PNG', 'SGP']
 
         df = df[(df['prf'] == 1) | (df['country_iso'].isin(country_list))]
@@ -106,6 +106,10 @@ def output_json(pip_result_csv, api_endpoint_object, is_test, climate=False):
     else:
         final_record_list = df.to_dict('records')
 
-    # write outputs to final file
-    write_outputs(final_record_list, api_endpoint_object.s3_url)
+    if environment in ['prod', 'staging']:
+        # write outputs to final file
+        write_outputs(final_record_list, api_endpoint_object.s3_url)
+
+    else:
+        print 'Test run, not pushing JSON output to S3'
 
