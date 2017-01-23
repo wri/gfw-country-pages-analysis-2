@@ -13,23 +13,21 @@ def build_week_lookup(day_num, year):
 
 def cum_values(climate_dict):
 
-    target_2020_dict = {'IDN': {'emiss_t': 41.04496782, 'defor_t': 100815.0},
+    target_2020_dict = {'IDN': {'emiss_t': 198.44, 'defor_t': 521996.0},
                         'COG': {'emiss_t': 9.202262991, 'defor_t': 14594.16161},
                         'BRA': {'emiss_t': 229.5, 'defor_t': 965000.0},
                         'PER': {'emiss_t': 23.46251872, 'defor_t': 67526.67565},
-                        'UGA': {'emiss_t': 5.5, 'defor_t': 18590},
-                        ##### DUMMY VALUES BELOW--  NEED TO FILL THESE IN WITH REAL DATA BEFORE LAUNCH
-                        ##### Also need to fix IDN value-- currently for just kalimantan
-                        'BRN': {'emiss_t': 5.5, 'defor_t': 18590},
-                        'TLS': {'emiss_t': 5.5, 'defor_t': 18590},
-                        'CMR': {'emiss_t': 5.5, 'defor_t': 18590},
-                        'MYS': {'emiss_t': 5.5, 'defor_t': 18590},
-                        'COD': {'emiss_t': 5.5, 'defor_t': 18590},
-                        'GAB': {'emiss_t': 5.5, 'defor_t': 18590},
-                        'CAF': {'emiss_t': 5.5, 'defor_t': 18590},
-                        'GNQ': {'emiss_t': 5.5, 'defor_t': 18590},
-                        'PNG': {'emiss_t': 5.5, 'defor_t': 18590},
-                        'SGP': {'emiss_t': 5.5, 'defor_t': 18590}}
+                        'UGA': {'emiss_t': 5.5, 'defor_t': 18590.0},
+                        'BRN': {'emiss_t': 0.452, 'defor_t': 1359.0},
+                        'TLS': {'emiss_t': 0.487, 'defor_t': 1563.0},
+                        'CMR': {'emiss_t': 16.183, 'defor_t': 48575.0},
+                        'MYS': {'emiss_t': 42.733, 'defor_t': 122938.0},
+                        'COD': {'emiss_t': 46.484, 'defor_t': 110488.0},
+                        'GAB': {'emiss_t': 7.472, 'defor_t': 19412.0},
+                        'CAF': {'emiss_t': 13.53, 'defor_t': 48080.0},
+                        'GNQ': {'emiss_t': 1.635, 'defor_t': 4776.0},
+                        'PNG': {'emiss_t': 23.386, 'defor_t': 62686.0},
+                        'SGP': {'emiss_t': 0.008, 'defor_t': 42.0}}
 
     for loss_emiss_dict in climate_dict:
 

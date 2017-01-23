@@ -73,14 +73,14 @@ def output_json(pip_result_csv, api_endpoint_object, is_test, climate=False):
         # filter: confirmed only
         df = df[df['confidence'] == 3]
 
-        # filter: where prf is 1 or where other countries exist
+        # filter: where climate_mask is 1 or where other countries exist
         # don't want to include RUS for climate stuff for now
         country_list = ['BRA', 'PER', 'COG', 'UGA']
 
         if is_test:
             country_list += ['TLS', 'CMR', 'MYS', 'COD', 'GAB', 'BRN', 'CAF', 'GNQ', 'PNG', 'SGP']
 
-        df = df[(df['prf'] == 1) | (df['country_iso'].isin(country_list))]
+        df = df[(df['climate_mask'] == 1) | (df['country_iso'].isin(country_list))]
 
         # 1/1/2016 should be categorized as week 53 of 2015. This code creates that proper combination of
         # week# and year based on ISO calendar
@@ -88,7 +88,7 @@ def output_json(pip_result_csv, api_endpoint_object, is_test, climate=False):
         df['week'], df['year'] = zip(*df.apply(lambda row: build_week_lookup(row['day'], row['year']), axis=1))
 
         # group by week and year, then sum
-        groupby_list = ['country_iso', 'state_id', 'week', 'year', 'confidence', 'prf']
+        groupby_list = ['country_iso', 'state_id', 'week', 'year', 'confidence', 'climate_mask']
         df_groupby = df.groupby(groupby_list)['alerts', 'above_ground_carbon_loss', 'area_m2'].sum()
 
         # df -> list of records, so we can run the cumulative values
