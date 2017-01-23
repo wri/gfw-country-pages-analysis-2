@@ -63,13 +63,10 @@ def get_associated_values(sheet_name, input_col_name, column_value_list, output_
     return [x[output_col_name] for x in filtered_rows]
 
 
-def get_hadoop_config(input_dataset_name, associated_dataset_name, is_test):
-
-    version_dict = {True: 'DEV', False: 'PROD'}
-    version = version_dict[is_test]
+def get_hadoop_config(input_dataset_name, associated_dataset_name, environment):
 
     hadoop_config = None
-    input_tuple = (input_dataset_name, associated_dataset_name, version)
+    input_tuple = (input_dataset_name, associated_dataset_name, environment)
 
     hadoop_rows = get_all_gdoc_rows('hadoop')
     header_row = hadoop_rows[0]
@@ -167,9 +164,7 @@ class SheetLayerDef(object):
         self.__dict__.update(entries)
 
 
-def get_api_endpoint(dataset1, dataset2, is_test):
-
-    is_test_dict = {True: 'DEV', False: 'PROD'}
+def get_api_endpoint(dataset1, dataset2, environment):
 
     gdoc_data_rows = get_all_gdoc_rows('api_endpoint_lookup')
     header_row = gdoc_data_rows[0]
@@ -181,7 +176,7 @@ def get_api_endpoint(dataset1, dataset2, is_test):
 
         forest_match = row_dict['forest_dataset'] == dataset1 or row_dict['forest_dataset'] == dataset2
         contextual_match = row_dict['contextual_dataset'] == dataset1 or row_dict['contextual_dataset'] == dataset2
-        version_match = row_dict['version'] == is_test_dict[is_test]
+        version_match = row_dict['version'] == environment
 
         if forest_match and contextual_match and version_match:
             api_endpoint_def = SheetLayerDef(**row_dict)
@@ -189,6 +184,6 @@ def get_api_endpoint(dataset1, dataset2, is_test):
 
     if api_endpoint_def is None:
         raise ValueError("No matching record in the google "
-                         "sheet for datasets: {}, {} and version {}".format(dataset1, dataset2, is_test_dict[is_test]))
+                         "sheet for datasets: {}, {} and version {}".format(dataset1, dataset2, environment))
 
     return api_endpoint_def
