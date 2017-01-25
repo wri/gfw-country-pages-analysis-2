@@ -75,12 +75,9 @@ def output_json(pip_result_csv, api_endpoint_object, environment, climate=False)
 
         # filter: where climate_mask is 1 or where other countries exist
         # don't want to include RUS for climate stuff for now
-        country_list = ['BRA', 'PER', 'COG', 'UGA', 'TLS', 'CMR', 'MYS', 'BDI'
-                        'COD', 'GAB', 'BRN', 'CAF', 'GNQ', 'PNG', 'SGP', 'RWA']
-
-        # Can use this if countries in prod != countries in staging
-        # if environment in ['staging', 'test']:
-        #     country_list += ['TLS', 'CMR', 'MYS', 'COD', 'GAB', 'BRN', 'CAF', 'GNQ', 'PNG', 'SGP']
+        # MYS, IDN and COD not included-- must have climate_mask == 1 to be valid
+        country_list = ['BRA', 'PER', 'COG', 'UGA', 'TLS', 'CMR', 'BDI',
+                        'GAB', 'BRN', 'CAF', 'GNQ', 'PNG', 'SGP', 'RWA']
 
         df = df[(df['climate_mask'] == 1) | (df['country_iso'].isin(country_list))]
 
