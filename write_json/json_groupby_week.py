@@ -27,6 +27,8 @@ def cum_values(climate_dict):
                         'CAF': {'emiss_t': 13.53, 'defor_t': 48080.0},
                         'GNQ': {'emiss_t': 1.635, 'defor_t': 4776.0},
                         'PNG': {'emiss_t': 23.386, 'defor_t': 62686.0},
+                        'BDI': {'emiss_t': 0.211, 'defor_t': 1190.0},
+                        'RWA': {'emiss_t': 0.252, 'defor_t': 1257.0},
                         'SGP': {'emiss_t': 0.008, 'defor_t': 42.0}}
 
     for loss_emiss_dict in climate_dict:

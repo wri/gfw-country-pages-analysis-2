@@ -16,11 +16,7 @@ def sync(api_dataset_id, s3_url, environment):
 
     headers = {'Content-Type': 'application/json', 'Authorization': 'Bearer {0}'.format(token)}
 
-    truncate_dataset(headers, api_url, api_dataset_id)
-
-    append_from_json_file(headers, api_url, api_dataset_id, s3_url)
-
-    # confirm_dataset_saved(headers, api_url, api_dataset_id)
+    overwrite_dataset(headers, api_url, api_dataset_id, s3_url)
 
 
 def make_request(headers, api_endpoint, request_type, payload, status_code_required, json_map_list=None):
@@ -97,17 +93,15 @@ def check_creation_status(headers, api_url, dataset_id):
     return dataset_status
 
 
-def truncate_dataset(headers, api_url, dataset_id):
-    print 'Truncating dataset: {0}'.format(dataset_id)
+def overwrite_dataset(headers, api_url, dataset_id, s3_url):
+    print 'Overwriting dataset: {0}'.format(dataset_id)
     dataset_url = r'{0}/dataset/{1}'.format(api_url, dataset_id)
 
-    # modify_attributes_payload = {"dataset": {"dataset_attributes": {"data_overwrite": True}}}
     modify_attributes_payload = {"dataset": {"data_overwrite": True}}
-    # make_request(headers, dataset_url, 'PUT', modify_attributes_payload, 200)
     make_request(headers, dataset_url, 'PATCH', modify_attributes_payload, 200)
 
     data_overwrite_url = r'{0}/data-overwrite'.format(dataset_url)
-    overwrite_payload = {"dataset": {"data": []}}
+    overwrite_payload = {"dataset": {"connectorUrl": s3_url, "data_path": "data"}}
 
     make_request(headers, data_overwrite_url, 'POST', overwrite_payload, 200)
 
