@@ -58,14 +58,16 @@ def make_request(headers, api_endpoint, request_type, payload, status_code_requi
 
 def create_dataset(headers, api_url, s3_path):
     datasets_url = r'{0}/dataset'.format(api_url)
-    payload = {"dataset":
-                   {"connectorType": "json",
-                    "connectorProvider": "rwjson",
-                    "application": ["gfw"],
-                    "name": "2000 Forest Extent Tabulated by GADM2",
-                    "data_path": "data",
-                    "tags": ["UMD", "2000", "gadm2"]},
-               "connectorUrl": s3_path
+    payload = {
+                "dataset":
+                   {
+                      "connectorType": "document",
+                      "provider": "csv",
+                      "application": ["gfw"],
+                      "name": "Terra I data for download",
+                      "tags": ["Terra-I", "alerts"],
+                      "connectorUrl": s3_path
+                    },
                }
 
     dataset_id = make_request(headers, datasets_url, 'POST', payload, 201, ['data', 'id'])
