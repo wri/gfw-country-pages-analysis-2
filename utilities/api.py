@@ -97,7 +97,7 @@ def overwrite_dataset(headers, api_url, dataset_id, s3_url):
     print 'Overwriting dataset: {0}'.format(dataset_id)
     dataset_url = r'{0}/dataset/{1}'.format(api_url, dataset_id)
 
-    modify_attributes_payload = {"dataset": {"data_overwrite": True}}
+    modify_attributes_payload = {"dataset": {"overwrite": True}}
     make_request(headers, dataset_url, 'PATCH', modify_attributes_payload, 200)
 
     data_overwrite_url = r'{0}/data-overwrite'.format(dataset_url)
