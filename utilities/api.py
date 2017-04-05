@@ -105,7 +105,7 @@ def overwrite_dataset(headers, api_url, dataset_id, s3_url):
     data_overwrite_url = r'{0}/data-overwrite'.format(dataset_url)
     overwrite_payload = {"url": s3_url, "dataPath": "data", "provider": "json"}
 
-    make_request(headers, data_overwrite_url, 'POST', overwrite_payload, 200)
+    make_request(headers, data_overwrite_url, 'POST', overwrite_payload, 204)
 
 
 @retry(wait_exponential_multiplier=1000, wait_exponential_max=10000, stop_max_delay=10000)
