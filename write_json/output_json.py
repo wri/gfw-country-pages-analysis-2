@@ -6,6 +6,7 @@ import os
 import json_groupby_week
 import df_to_json
 import insert_dummyweeks
+from utilities import util
 
 
 def write_outputs(records_list, output_s3_path):
@@ -49,7 +50,14 @@ def output_json(pip_result_csv, api_endpoint_object, environment, climate=False)
 
     # csv to pandas data frame
     field_names = api_endpoint_object.csv_field_names.split(',')
-    df = pd.read_csv(pip_result_csv, names=field_names)
+
+    # grab any custom datatype specifications from the API spreadsheet
+    dtype_dict = json.loads(api_endpoint_object.dtypes)
+
+    # convert them to format {'col_name': <python type>}
+    dtype_val = {col_name: eval(col_type) for col_name, col_type in dtype_dict.iteritems()}
+
+    df = pd.read_csv(pip_result_csv, names=field_names, dtype=dtype_val)
 
     # If we're working with glad alerts, need to do some specific filtering
     # and need to sum by alerts
@@ -59,15 +67,27 @@ def output_json(pip_result_csv, api_endpoint_object, environment, climate=False)
         # filter valid confidence only
         df = df[(df['confidence'] == 2) | (df['confidence'] == 3)]
 
-        # group by day and year, then sum
-        groupby_list = ['country_iso', 'state_id', 'day', 'year', 'confidence']
+        if api_endpoint_object.contextual_dataset in ['wdpa', 'peat', 'moratorium']:
 
-        # df_groupby = df.groupby(groupby_list)['alerts', 'above_ground_carbon_loss', 'area_m2'].sum()
-        df_groupby = df.groupby(groupby_list)['alerts', ].sum()
+            df['month'] = df.apply(util.df_year_day_to_month, axis=1)
+            groupby_list = ['country_iso', 'state_id', 'dist_id', 'year', 'month']
 
-        # df -> list of records
-        final_record_list = df_to_json.df_to_json(df_groupby)
-        print 'finished filtering/groupby'
+            if api_endpoint_object.contextual_dataset == 'wdpa':
+                groupby_list += ['wdpa_id']
+
+            df_groupby = df.groupby(groupby_list)['alerts',].sum().reset_index()
+            final_record_list = df_groupby.to_dict(orient='records')
+
+        else:
+            # group by day and year, then sum
+            groupby_list = ['country_iso', 'state_id', 'day', 'year', 'confidence']
+
+            # df_groupby = df.groupby(groupby_list)['alerts', 'above_ground_carbon_loss', 'area_m2'].sum()
+            df_groupby = df.groupby(groupby_list)['alerts', ].sum()
+
+            # df -> list of records
+            final_record_list = df_to_json.df_to_json(df_groupby)
+            print 'finished filtering/groupby'
 
     # Custom process/filtering for climate data
     elif climate:
