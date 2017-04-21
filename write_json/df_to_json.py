@@ -17,7 +17,6 @@ def move_key_value(df_dict, climate):
         temp_dict['alerts'] = int(value_dict['alerts'])
         temp_dict['state_iso'] = key_tuple[0] + str(key_tuple[1])
 
-
         if climate:
             temp_dict['week'] = int(key_tuple[2])
             temp_dict['above_ground_carbon_loss'] = round(value_dict['above_ground_carbon_loss'], 4)

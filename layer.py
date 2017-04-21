@@ -20,7 +20,8 @@ class Layer(object):
 
     def get_associated_datasets(self, associated_dataset):
 
-        self.associated_dataset_list = gs.get_associated_datasets(self.dataset_technical_name, associated_dataset)
+        all_datasets = gs.get_associated_datasets(self.dataset_technical_name, associated_dataset)
+        self.associated_dataset_list = list(set(all_datasets))
 
     def calculate_summary_values(self):
 
@@ -37,21 +38,31 @@ class Layer(object):
             # Add dataset ID and S3 URL of matching dataset to the update_api_dict
             self.update_api_dict[cp_api_endpoint.dataset_id] = cp_api_endpoint.web_url
 
-            # If the datasets being processed are GLAD and gadm2, write climate output too
-            if {self.dataset_technical_name, associated_dataset_name} == {'umd_landsat_alerts', 'gadm2_boundary'}:
-                self.update_climate(local_path_list)
+            # make a set of the technical name + associated dataset. we never know what order
+            # they'll come in (gadm2 could be dataset, and GLAD could be associated, for example
+            input_set = {self.dataset_technical_name, associated_dataset_name}
 
-    def update_climate(self, local_path):
-        climate_name = self.dataset_technical_name + '_climate'
+            # If the datasets being processed are GLAD and gadm2, write climate output too
+            if input_set == {'umd_landsat_alerts', 'gadm2_boundary'}:
+                self.update_additional('climate', associated_dataset_name, local_path_list)
+
+                self.update_additional('month', associated_dataset_name, local_path_list)
+
+            if input_set == {'terra_i_alerts', 'gadm1_boundary'}:
+                self.update_additional('month', associated_dataset_name, local_path_list)
+
+    def update_additional(self, update_name, associated_dataset_name, local_path):
+
+        update_dataset_name = self.dataset_technical_name + '_' + update_name
 
         # Grab the outfile location on F:\ for the dataset/associated dataset/climate/test combination
-        climate_api_endpoint = gs.get_api_endpoint(climate_name, 'gadm2_boundary', self.environment)
+        update_api_endpoint = gs.get_api_endpoint(update_dataset_name, associated_dataset_name, self.environment)
 
         # Process the hadoop CSV into JSON, and write the output
-        output_json.output_json(local_path, climate_api_endpoint, self.environment, climate=True)
+        output_json.output_json(local_path, update_api_endpoint, self.environment, update_name=update_name)
 
         # Add dataset ID and S3 URL of matching dataset to the update_api_dict
-        self.update_api_dict[climate_api_endpoint.dataset_id] = climate_api_endpoint.web_url
+        self.update_api_dict[update_api_endpoint.dataset_id] = update_api_endpoint.web_url
 
     def push_to_gfw_api(self):
 

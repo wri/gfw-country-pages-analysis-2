@@ -21,14 +21,16 @@ def pip(dataset_technical_name, associated_dataset_list, environment):
 
     hadoop_config_list = []
 
-    if environment in ['prod', 'staging']:
+    # we have lots of associated datasets
+    # but only some we actually want to run in this process
+    matched_dataset_list = []
 
-        for associated_dataset_name in associated_dataset_list:
-                config = gs.get_hadoop_config(dataset_technical_name, associated_dataset_name, environment)
+    for associated_dataset_name in associated_dataset_list:
+            config = gs.get_hadoop_config(dataset_technical_name, associated_dataset_name, environment)
+
+            if config:
                 hadoop_config_list.append(config)
-
-    else:
-        s3_result_list = associated_dataset_list
+                matched_dataset_list.append(associated_dataset_name)
 
     # Run hadoop process only if the environment is prod/staging
     if environment in ['prod', 'staging']:
@@ -41,9 +43,12 @@ def pip(dataset_technical_name, associated_dataset_list, environment):
         # We may have submitted multiple jobs, but for each we only want the first item in the list
         s3_result_list = [x[0] for x in s3_result_list]
 
-    local_result_list = download_results(associated_dataset_list, s3_result_list, environment)
+    else:
+        s3_result_list = matched_dataset_list
 
-    return zip(associated_dataset_list, local_result_list)
+    local_result_list = download_results(matched_dataset_list, s3_result_list, environment)
+
+    return zip(matched_dataset_list, local_result_list)
 
 
 def download_results(associated_dataset_list, s3_result_list, environment):

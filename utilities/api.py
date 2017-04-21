@@ -47,7 +47,10 @@ def make_request(headers, api_endpoint, request_type, payload, status_code_requi
             return_val = reduce(lambda d, k: d[k], json_map_list, r.json())
 
         else:
-            return_val = r.json()
+            try:
+                return_val = r.json()
+            except ValueError:
+                return_val = {"Response": "No JSON found"}
 
         return return_val
 

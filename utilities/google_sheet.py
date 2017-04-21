@@ -103,7 +103,7 @@ def build_associated_dataset_list(input_tech_title, country_list):
 
     sheet_name = get_sheet_name(input_tech_title, False)
 
-    out_list = {}
+    out_list = []
 
     gdoc_as_lists = get_all_gdoc_rows(sheet_name)
     header_row = gdoc_as_lists[0]

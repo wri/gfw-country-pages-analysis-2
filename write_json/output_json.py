@@ -9,7 +9,7 @@ import insert_dummyweeks
 from utilities import util
 
 
-def write_outputs(records_list, output_s3_path):
+def write_outputs(records_list, output_s3_path, environment):
 
     root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     results_dir = os.path.join(root_dir, 'results')
@@ -32,42 +32,48 @@ def write_outputs(records_list, output_s3_path):
     df.to_csv(csv_results)
 
     # push to aws
-    cmd = ['aws', 's3', 'cp', '--content-type', r'application/json', local_json_file, output_s3_path]
-    subprocess.check_call(cmd)
+    if environment in ['prod', 'staging']:
+        cmd = ['aws', 's3', 'cp', '--content-type', r'application/json', local_json_file, output_s3_path]
+        subprocess.check_call(cmd)
 
 
-def output_json(pip_result_csv, api_endpoint_object, environment, climate=False):
+def output_json(pip_result_csv, api_endpoint_object, environment, update_name=None):
     """
     Take the local output from the Hadoop PIP process and write a JSON file
     :param pip_result_csv: the local hadoop PIP CSV
     :param api_endpoint_object: a row from the config sheet:
      https://docs.google.com/spreadsheets/d/174wtlPMWENa1FCYXHqzwvZB5vi7DjLwX-oQjaUEdxzo/edit#gid=923735044
     :param environment: used to designate if this is a staging run or not-- if so will include more countries in climate
-    :param climate: whether or not to run climate processing
+    :param update_name: special updates (climate, monthly) to run
     :return:
     """
-    print 'starting starting read CSV'
+    print 'starting read CSV'
 
     # csv to pandas data frame
     field_names = api_endpoint_object.csv_field_names.split(',')
 
     # grab any custom datatype specifications from the API spreadsheet
-    dtype_dict = json.loads(api_endpoint_object.dtypes)
+    try:
+        dtype_dict = json.loads(api_endpoint_object.dtypes)
 
-    # convert them to format {'col_name': <python type>}
-    dtype_val = {col_name: eval(col_type) for col_name, col_type in dtype_dict.iteritems()}
+        # convert them to format {'col_name': <python type>}
+        dtype_val = {col_name: eval(col_type) for col_name, col_type in dtype_dict.iteritems()}
+
+    # if '' in cell in google sheet, no dytpe val supplied
+    except ValueError:
+        dtype_val = None
 
     df = pd.read_csv(pip_result_csv, names=field_names, dtype=dtype_val)
 
     # If we're working with glad alerts, need to do some specific filtering
     # and need to sum by alerts
     if api_endpoint_object.forest_dataset == 'umd_landsat_alerts':
-        print 'filtering CSV- regular glad'
 
         # filter valid confidence only
         df = df[(df['confidence'] == 2) | (df['confidence'] == 3)]
 
-        if api_endpoint_object.contextual_dataset in ['wdpa', 'peat', 'moratorium']:
+        if api_endpoint_object.contextual_dataset in ['wdpa', 'idn_moratorium', 'mys_idn_peat']:
+            print 'filtering CSV- glad in {}'.format(api_endpoint_object.contextual_dataset)
 
             df['month'] = df.apply(util.df_year_day_to_month, axis=1)
             groupby_list = ['country_iso', 'state_id', 'dist_id', 'year', 'month']
@@ -75,10 +81,12 @@ def output_json(pip_result_csv, api_endpoint_object, environment, climate=False)
             if api_endpoint_object.contextual_dataset == 'wdpa':
                 groupby_list += ['wdpa_id']
 
-            df_groupby = df.groupby(groupby_list)['alerts',].sum().reset_index()
+            df_groupby = df.groupby(groupby_list)['alerts', ].sum().reset_index()
             final_record_list = df_groupby.to_dict(orient='records')
 
         else:
+            print 'filtering CSV- regular glad'
+
             # group by day and year, then sum
             groupby_list = ['country_iso', 'state_id', 'day', 'year', 'confidence']
 
@@ -87,10 +95,11 @@ def output_json(pip_result_csv, api_endpoint_object, environment, climate=False)
 
             # df -> list of records
             final_record_list = df_to_json.df_to_json(df_groupby)
-            print 'finished filtering/groupby'
+
+        print 'finished filtering/groupby'
 
     # Custom process/filtering for climate data
-    elif climate:
+    elif update_name == 'climate':
         print 'filtering CSV for climate'
 
         # filter: confirmed only
@@ -119,7 +128,7 @@ def output_json(pip_result_csv, api_endpoint_object, environment, climate=False)
 
         # df -> list of records, so we can run the cumulative values
         print 'sorting data frame to list of records'
-        raw_record_list = df_to_json.df_to_json(df_groupby, climate)
+        raw_record_list = df_to_json.df_to_json(df_groupby, True)
 
         # cumulate values
         print 'cumulating values'
@@ -130,15 +139,29 @@ def output_json(pip_result_csv, api_endpoint_object, environment, climate=False)
         final_record_list = insert_dummyweeks.insert_dummy_cumulative_rows(cum_record_list)
         print 'finished filtering/groupby for climate'
 
+    elif update_name == 'month':
+
+        print 'filtering CSV for month'
+
+        df['month'] = df.apply(util.df_year_day_to_month, axis=1)
+
+        if api_endpoint_object.forest_dataset == 'umd_landsat_alerts_month':
+            groupby_list = ['country_iso', 'state_id', 'dist_id', 'year', 'month']
+            sum_field = 'alerts'
+
+        else:
+            groupby_list = ['country_id', 'state_id', 'year', 'month']
+            sum_field = 'count'
+
+        df_groupby = df.groupby(groupby_list)[sum_field,].sum().reset_index()
+        final_record_list = df_groupby.to_dict(orient='records')
+
     # Otherwise the output from hadoop_pip is already summarized for us, just need
     # to put it in [row, row, row, ...] format
     else:
         final_record_list = df.to_dict('records')
 
-    if environment in ['prod', 'staging']:
-        # write outputs to final file
-        write_outputs(final_record_list, api_endpoint_object.s3_url)
+    # write outputs to final file (only push to s3 if prod or staging)
+    write_outputs(final_record_list, api_endpoint_object.s3_url, environment)
 
-    else:
-        print 'Test run, not pushing JSON output to S3'
 
