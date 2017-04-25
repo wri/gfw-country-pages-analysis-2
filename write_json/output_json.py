@@ -59,7 +59,7 @@ def output_json(pip_result_csv, api_endpoint_object, environment, update_name=No
         # convert them to format {'col_name': <python type>}
         dtype_val = {col_name: eval(col_type) for col_name, col_type in dtype_dict.iteritems()}
 
-    # if '' in cell in google sheet, no dytpe val supplied
+    # if empty cell in google sheet (represented as ''), no dytpe val supplied
     except ValueError:
         dtype_val = None
 
@@ -76,7 +76,7 @@ def output_json(pip_result_csv, api_endpoint_object, environment, update_name=No
             print 'filtering CSV- glad in {}'.format(api_endpoint_object.contextual_dataset)
 
             df['month'] = df.apply(util.df_year_day_to_month, axis=1)
-            groupby_list = ['country_iso', 'state_id', 'dist_id', 'year', 'month']
+            groupby_list = ['country_iso', 'state_id', 'year', 'month']
 
             if api_endpoint_object.contextual_dataset == 'wdpa':
                 groupby_list += ['wdpa_id']
@@ -146,20 +146,20 @@ def output_json(pip_result_csv, api_endpoint_object, environment, update_name=No
         df['month'] = df.apply(util.df_year_day_to_month, axis=1)
 
         if api_endpoint_object.forest_dataset == 'umd_landsat_alerts_month':
-            groupby_list = ['country_iso', 'state_id', 'dist_id', 'year', 'month']
+            groupby_list = ['country_iso', 'state_id', 'year', 'month']
             sum_field = 'alerts'
 
         else:
             groupby_list = ['country_id', 'state_id', 'year', 'month']
             sum_field = 'count'
 
-        df_groupby = df.groupby(groupby_list)[sum_field,].sum().reset_index()
+        df_groupby = df.groupby(groupby_list)[sum_field, ].sum().reset_index()
         final_record_list = df_groupby.to_dict(orient='records')
 
     # Otherwise the output from hadoop_pip is already summarized for us, just need
     # to put it in [row, row, row, ...] format
     else:
-        final_record_list = df.to_dict('records')
+        final_record_list = df.to_dict(orient='records')
 
     # write outputs to final file (only push to s3 if prod or staging)
     write_outputs(final_record_list, api_endpoint_object.s3_url, environment)

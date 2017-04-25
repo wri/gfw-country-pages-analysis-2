@@ -27,13 +27,13 @@ class Layer(object):
 
         self.results_list = hadoop.pip(self.dataset_technical_name, self.associated_dataset_list, self.environment)
 
-        for associated_dataset_name, local_path_list in self.results_list:
+        for associated_dataset_name, local_path in self.results_list:
 
             # Grab the outfile location on F:\ for the dataset/associated dataset/test combination
             cp_api_endpoint = gs.get_api_endpoint(self.dataset_technical_name, associated_dataset_name, self.environment)
 
             # Process the hadoop CSV into JSON, and write the output
-            output_json.output_json(local_path_list, cp_api_endpoint, self.environment)
+            output_json.output_json(local_path, cp_api_endpoint, self.environment)
 
             # Add dataset ID and S3 URL of matching dataset to the update_api_dict
             self.update_api_dict[cp_api_endpoint.dataset_id] = cp_api_endpoint.web_url
@@ -44,12 +44,12 @@ class Layer(object):
 
             # If the datasets being processed are GLAD and gadm2, write climate output too
             if input_set == {'umd_landsat_alerts', 'gadm2_boundary'}:
-                self.update_additional('climate', associated_dataset_name, local_path_list)
+                self.update_additional('climate', associated_dataset_name, local_path)
 
-                self.update_additional('month', associated_dataset_name, local_path_list)
+                self.update_additional('month', associated_dataset_name, local_path)
 
             if input_set == {'terra_i_alerts', 'gadm1_boundary'}:
-                self.update_additional('month', associated_dataset_name, local_path_list)
+                self.update_additional('month', associated_dataset_name, local_path)
 
     def update_additional(self, update_name, associated_dataset_name, local_path):
 
