@@ -48,7 +48,7 @@ class Layer(object):
 
                 self.update_additional('month', associated_dataset_name, local_path)
 
-            if input_set == {'terra_i_alerts', 'gadm1_boundary'}:
+            if input_set == {'terra_i_alerts', 'gadm2_boundary'}:
                 self.update_additional('month', associated_dataset_name, local_path)
 
     def update_additional(self, update_name, associated_dataset_name, local_path):
