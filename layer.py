@@ -29,11 +29,23 @@ class Layer(object):
 
         for associated_dataset_name, local_path in self.results_list:
 
-            # Grab the outfile location on F:\ for the dataset/associated dataset/test combination
-            cp_api_endpoint = gs.get_api_endpoint(self.dataset_technical_name, associated_dataset_name, self.environment)
+            print 'processing {} and associated dataset {}'.format(self.dataset_technical_name, associated_dataset_name)
 
-            # Process the hadoop CSV into JSON, and write the output
-            output_json.output_json(local_path, cp_api_endpoint, self.environment)
+            # Grab the outfile location on F:\ for the dataset/associated dataset/test combination
+            try:
+                cp_api_endpoint = gs.get_api_endpoint(self.dataset_technical_name, associated_dataset_name, self.environment)
+
+                # Process the hadoop CSV into JSON, and write the output
+                output_json.output_json(local_path, cp_api_endpoint, self.environment)
+
+            # If we can't find this combination in the input spreadsheet, trying adding '_month' to it
+            # We want some datasets to be summarized as counts by iso/adm1/adm2, and by month/iso/adm1/adm2
+            # some datasets (like wdpa/idn moratorium/mys_idn_peat, we just want monthly summaries
+            # this, as ugly as it is, deals with that
+            except ValueError:
+                cp_api_endpoint = gs.get_api_endpoint(self.dataset_technical_name + '_month', associated_dataset_name,
+                                                      self.environment)
+                self.update_additional('month', associated_dataset_name, local_path)
 
             # Add dataset ID and S3 URL of matching dataset to the update_api_dict
             self.update_api_dict[cp_api_endpoint.dataset_id] = cp_api_endpoint.web_url
@@ -54,6 +66,7 @@ class Layer(object):
     def update_additional(self, update_name, associated_dataset_name, local_path):
 
         update_dataset_name = self.dataset_technical_name + '_' + update_name
+        print 'doing additional update for {} with {}'.format(self.dataset_technical_name, associated_dataset_name)
 
         # Grab the outfile location on F:\ for the dataset/associated dataset/climate/test combination
         update_api_endpoint = gs.get_api_endpoint(update_dataset_name, associated_dataset_name, self.environment)

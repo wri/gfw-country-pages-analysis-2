@@ -142,8 +142,11 @@ def output_json(pip_result_csv, api_endpoint_object, environment, update_name=No
     elif update_name == 'month':
 
         print 'filtering CSV for month'
+        print df
+        print df.columns
 
         df['month'] = df.apply(util.df_year_day_to_month, axis=1)
+        print df
 
         if api_endpoint_object.forest_dataset == 'umd_landsat_alerts_month':
             groupby_list = ['country_iso', 'state_id', 'year', 'month']
@@ -154,6 +157,9 @@ def output_json(pip_result_csv, api_endpoint_object, environment, update_name=No
             sum_field = 'count'
 
         df_groupby = df.groupby(groupby_list)[sum_field, ].sum().reset_index()
+        print df_groupby
+        print df_groupby.columns
+
         final_record_list = df_groupby.to_dict(orient='records')
 
     # Otherwise the output from hadoop_pip is already summarized for us, just need
