@@ -20,7 +20,13 @@ class Layer(object):
 
     def get_associated_datasets(self, associated_dataset):
 
-        all_datasets = gs.get_associated_datasets(self.dataset_technical_name, associated_dataset)
+        if associated_dataset:
+            gs.validate_associated_dataset(self.dataset_technical_name, associated_dataset)
+            all_datasets = [associated_dataset]
+
+        else:
+            all_datasets = gs.get_associated_datasets(self.dataset_technical_name)
+
         self.associated_dataset_list = list(set(all_datasets))
 
     def calculate_summary_values(self):

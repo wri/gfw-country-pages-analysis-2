@@ -86,15 +86,21 @@ def get_hadoop_config(input_dataset_name, associated_dataset_name, environment):
     return hadoop_config
 
 
-def get_associated_datasets(input_tech_title, input_associated_dataset):
+def validate_associated_dataset(input_tech_title, input_associated_dataset):
 
-    if input_associated_dataset:
-        associated_dataset_list = [input_associated_dataset]
-    else:
-        sheet_name = get_sheet_name(input_tech_title, True)
-        country_list = get_associated_values(sheet_name, 'DATASET_TECHNICAL_NAME', [input_tech_title], 'ISO_code')
+    all_associated_datasets = list(set(get_associated_datasets(input_tech_title)))
 
-        associated_dataset_list = build_associated_dataset_list(input_tech_title, country_list)
+    if input_associated_dataset not in all_associated_datasets:
+        raise ValueError('Dataset {} not in config sheet for {}, try one of the following: {}.'.format(
+            input_associated_dataset, input_tech_title, ', '.join(all_associated_datasets)))
+
+
+def get_associated_datasets(input_tech_title):
+
+    sheet_name = get_sheet_name(input_tech_title, True)
+    country_list = get_associated_values(sheet_name, 'DATASET_TECHNICAL_NAME', [input_tech_title], 'ISO_code')
+
+    associated_dataset_list = build_associated_dataset_list(input_tech_title, country_list)
 
     return associated_dataset_list
 
