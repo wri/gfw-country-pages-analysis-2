@@ -19,6 +19,7 @@ def sync(api_dataset_id, s3_url, environment):
     overwrite_dataset(headers, api_url, api_dataset_id, s3_url)
 
 
+@retry(wait_exponential_multiplier=1000, wait_exponential_max=10000, stop_max_delay=10000)
 def make_request(headers, api_endpoint, request_type, payload, status_code_required, json_map_list=None):
     # print 'Sending {0} request to endpoint {1}'.format(request_type, api_endpoint)
 
