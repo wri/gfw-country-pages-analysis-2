@@ -1,43 +1,29 @@
 import pandas as pd
 import json
 import subprocess
-import datetime
 import os
 
-import json_groupby_week
-import df_to_json
-import insert_dummyweeks
-from utilities import util
+from utilities import util, climate
 
 
-def write_outputs(records_list, output_s3_path, environment):
+def write_outputs(results_df, output_s3_path, environment):
 
     root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     results_dir = os.path.join(root_dir, 'results')
 
     basename = os.path.basename(output_s3_path)
-    local_json_file = os.path.join(results_dir, basename)
-
-    # add list of dictionaries as value for "data" key
-    final_dict = {"data": records_list}
-
-    # write to json
-    with open(local_json_file, 'w') as outfile:
-        json.dump(final_dict, outfile)
-
-    # add csv file to output
-    csv_results = os.path.splitext(local_json_file)[0] + '_processed.csv'
+    results_csv = os.path.join(results_dir, basename)
 
     # write to csv
-    pd.DataFrame(records_list).to_csv(csv_results, index=False)
+    results_df.to_csv(results_csv, index=False)
 
     # push to aws
     if environment in ['prod', 'staging']:
-        cmd = ['aws', 's3', 'cp', '--content-type', r'application/json', local_json_file, output_s3_path]
+        cmd = ['aws', 's3', 'cp', results_csv, output_s3_path]
         subprocess.check_call(cmd)
 
 
-def output_json(pip_result_csv, api_endpoint_object, environment, update_name=None):
+def process_table(pip_result_csv, api_endpoint_object, environment, update_name=None):
     """
     Take the local output from the Hadoop PIP process and write a JSON file
     :param pip_result_csv: the local hadoop PIP CSV
@@ -77,40 +63,37 @@ def output_json(pip_result_csv, api_endpoint_object, environment, update_name=No
         df = df[(df.confidence == 2) | (df.confidence == 3)]
 
         # group by day and year, then sum
-        groupby_list = ['confidence', 'year', 'julian_day', 'climate_mask',
-                        'polyname', 'bound1', 'bound2', 'iso', 'adm1', 'adm2']
+        groupby_list = ['confidence', 'year', 'julian_day','polyname',
+                        'bound1', 'bound2', 'iso', 'adm1', 'adm2']
         sum_list = ['alerts', 'above_ground_carbon_loss', 'area_m2']
-        df_groupby = df.groupby(groupby_list)[sum_list].sum().reset_index()
+        final_df = df.groupby(groupby_list)[sum_list].sum().reset_index()
 
         # convert area to ha from m2
-        df_groupby['area_ha'] = df_groupby.area_m2 / 10000
+        final_df['area_ha'] = final_df.area_m2 / 10000
 
         # convert year + day to date
-        df_groupby['alert_date'] = df_groupby.apply(lambda row: to_jd(row['year'], row['julian_day']), axis=1)
-        del df_groupby['year'], df_groupby['julian_day'], df_groupby['area_m2']
+        final_df['alert_date'] = final_df.apply(lambda row: util.to_jd(row), axis=1)
+        del final_df['year'], final_df['julian_day'], final_df['area_m2']
 
         # create date string that elastic can recognize
-        df_groupby.alert_date = df_groupby.alert_date.dt.strftime('%Y/%m/%d')
+        final_df.alert_date = final_df.alert_date.dt.strftime('%Y/%m/%d')
 
         # sort so elastic gets bound1/bound2 field types right
-        df_groupby = df_groupby.sort_values('bound2', ascending=False)
-        print df_groupby.head()
-
-        # df -> list of records
-        final_record_list = df_groupby.to_dict(orient='records')
-
-        print 'finished filtering/groupby'
+        final_df = final_df.sort_values('bound2', ascending=False)
 
     # Custom process/filtering for climate data
     elif update_name == 'climate':
         print 'filtering CSV for climate'
 
-        print 'selecting gadm28 polygons only'
-        df = df[df.polyname == 'gadm28']
+        print 'selecting gadm28 polygons and confirmed alerts only'
+        df = df[(df.polyname == 'gadm28') & (df.confidence == 3)]
 
-        # filter: confirmed only
-        print 'filtering to select where confidence == 3'
-        df = df[df.confidence == 3]
+        # change confidence to user-friendly label (not '3')
+        df['confidence'] = 'confirmed'
+
+        # convert loss in area_m2 to ha
+        df['loss_ha'] = df.area_m2 / 10000
+        del df['area_m2']
 
         # filter: where climate_mask is 1 or where other countries exist
         # don't want to include RUS for climate stuff for now
@@ -121,39 +104,21 @@ def output_json(pip_result_csv, api_endpoint_object, environment, update_name=No
         print 'filtering to select country list, or where climate_mask == 1'
         df = df[(df['climate_mask'] == 1) | (df['iso'].isin(country_list))]
 
-        print df.head()
-
         # 1/1/2016 should be categorized as week 53 of 2015. This code creates that proper combination of
         # week# and year based on ISO calendar
-
         print 'calculating week and year for each date'
-        df['week'], df['year'] = zip(*df.apply(lambda row: json_groupby_week.build_week_lookup(row['julian_day'], row['year']), axis=1))
+        df['week'], df['year'] = zip(*df.apply(lambda row: climate.build_week_lookup(row), axis=1))
 
         # group by week and year, then sum
-        print 'grouping by week and year, summing alerts, above_ground_carbon_loss and area_m2'
-        groupby_list = ['iso', 'adm1', 'week', 'year', 'confidence', 'climate_mask']
-        df_groupby = df.groupby(groupby_list)['alerts', 'above_ground_carbon_loss', 'area_m2'].sum()
+        print 'grouping by week and year, summing alerts, above_ground_carbon_loss and loss_ha'
+        groupby_list = ['iso', 'adm1', 'week', 'year', 'confidence']
+        sum_list = ['alerts', 'above_ground_carbon_loss', 'loss_ha']
+        df_groupby = df.groupby(groupby_list)[sum_list].sum().reset_index()
 
-        # df -> list of records, so we can run the cumulative values
-        print 'sorting data frame to list of records'
-        raw_record_list = df_to_json.df_to_json(df_groupby, True)
+        final_df = climate.cumsum(df_groupby)
 
-        # cumulate values
-        print 'cumulating values'
-        cum_record_list = json_groupby_week.cum_values(raw_record_list)
-
-        # fill in missing weeks data for glad 2016 only
-        print 'adding dummy data'
-        final_record_list = insert_dummyweeks.insert_dummy_cumulative_rows(cum_record_list)
-        print 'finished filtering/groupby for climate'
-
-    # Otherwise the output from hadoop_pip is already summarized for us, just need
-    # to put it in [row, row, row, ...] format
     else:
-        final_record_list = df.to_dict(orient='records')
+        final_df = df
 
     # write outputs to final file (only push to s3 if prod or staging)
-    write_outputs(final_record_list, api_endpoint_object.s3_url, environment)
-
-def to_jd(year, day):
-     return datetime.datetime(year, 1, 1) + datetime.timedelta(day - 1)
+    write_outputs(final_df, api_endpoint_object.s3_url, environment)

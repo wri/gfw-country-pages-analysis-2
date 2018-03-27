@@ -1,5 +1,4 @@
-from utilities import google_sheet as gs, hadoop, api
-from write_json import output_json
+from utilities import google_sheet as gs, hadoop, api, calculate_stats
 
 
 class Layer(object):
@@ -19,13 +18,14 @@ class Layer(object):
 
     def calculate_summary_values(self):
 
+        # run hadoop process to get table to summarize
         self.result_csv = hadoop.pip(self.dataset_technical_name, self.environment)
 
         print 'processing {}'.format(self.dataset_technical_name)
         cp_api_endpoint = gs.get_api_endpoint(self.dataset_technical_name, self.environment)
 
         # Process the hadoop CSV into JSON, and write the output
-        output_json.output_json(self.result_csv, cp_api_endpoint, self.environment)
+        calculate_stats.process_table(self.result_csv, cp_api_endpoint, self.environment)
 
         # Add dataset ID and S3 URL of matching dataset to the update_api_dict
         self.update_api_dict[cp_api_endpoint.dataset_id] = cp_api_endpoint.web_url
@@ -42,19 +42,16 @@ class Layer(object):
         update_api_endpoint = gs.get_api_endpoint(update_dataset_name, self.environment)
 
         # Process the hadoop CSV into JSON, and write the output
-        output_json.output_json(self.result_csv, update_api_endpoint, self.environment, update_name=update_name)
+        calculate_stats.process_table(self.result_csv, update_api_endpoint,
+                                      self.environment, update_name=update_name)
 
         # Add dataset ID and S3 URL of matching dataset to the update_api_dict
         self.update_api_dict[update_api_endpoint.dataset_id] = update_api_endpoint.web_url
 
     def push_to_gfw_api(self):
 
-        if self.environment in ['prod', 'staging']:
+        for api_dataset_id, s3_url in self.update_api_dict.iteritems():
 
-            for api_dataset_id, s3_url in self.update_api_dict.iteritems():
-
-                print 'Pushing {0} to dataset ID {1} on the GFW country pages API'.format(s3_url, api_dataset_id)
-                api.sync(api_dataset_id, s3_url, self.environment)
-
-        else:
-            print 'Currently running this as test; not pushing anything to gfw API'
+            print 'Pushing {0} to dataset ID {1} on the ' \
+                  'GFW country pages API'.format(s3_url, api_dataset_id)
+            api.sync(api_dataset_id, s3_url, self.environment)

@@ -1,6 +1,6 @@
 import os
 import json
-from datetime import datetime
+import datetime
 
 
 def load_json_from_token(file_name):
@@ -15,7 +15,10 @@ def load_json_from_token(file_name):
 
 
 def df_year_day_to_month(df):
-    as_date = datetime.strptime(str(df.year) + str(df.day), '%Y%j')
+    as_date = datetime.datetime.strptime(str(df.year) + str(df.day), '%Y%j')
 
     return as_date.month
 
+
+def to_jd(row):
+     return datetime.datetime(row['year'], 1, 1) + datetime.timedelta(row['julian_day'] - 1)
