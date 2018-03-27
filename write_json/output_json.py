@@ -1,6 +1,7 @@
 import pandas as pd
 import json
 import subprocess
+import datetime
 import os
 
 import json_groupby_week
@@ -28,8 +29,7 @@ def write_outputs(records_list, output_s3_path, environment):
     csv_results = os.path.splitext(local_json_file)[0] + '_processed.csv'
 
     # write to csv
-    df = pd.DataFrame(records_list)
-    df.to_csv(csv_results)
+    pd.DataFrame(records_list).to_csv(csv_results, index=False)
 
     # push to aws
     if environment in ['prod', 'staging']:
@@ -65,36 +65,39 @@ def output_json(pip_result_csv, api_endpoint_object, environment, update_name=No
 
     df = pd.read_csv(pip_result_csv, names=field_names, dtype=dtype_val)
 
+    # fill blank bounds - can cause issues if we groupby null values
+    df.bound1 = df.bound1.fillna(1)
+    df.bound2 = df.bound2.fillna(1)
+
     # If we're working with glad alerts, need to do some specific filtering
     # and need to sum by alerts
     if api_endpoint_object.forest_dataset == 'umd_landsat_alerts':
 
         # filter valid confidence only
-        df = df[(df['confidence'] == 2) | (df['confidence'] == 3)]
+        df = df[(df.confidence == 2) | (df.confidence == 3)]
 
-        if api_endpoint_object.contextual_dataset in ['wdpa', 'idn_moratorium', 'mys_idn_peat']:
-            print 'filtering CSV- glad in {}'.format(api_endpoint_object.contextual_dataset)
+        # group by day and year, then sum
+        groupby_list = ['confidence', 'year', 'julian_day', 'climate_mask',
+                        'polyname', 'bound1', 'bound2', 'iso', 'adm1', 'adm2']
+        sum_list = ['alerts', 'above_ground_carbon_loss', 'area_m2']
+        df_groupby = df.groupby(groupby_list)[sum_list].sum().reset_index()
 
-            df['month'] = df.apply(util.df_year_day_to_month, axis=1)
-            groupby_list = ['country_iso', 'state_id', 'year', 'month']
+        # convert area to ha from m2
+        df_groupby['area_ha'] = df_groupby.area_m2 / 10000
 
-            if api_endpoint_object.contextual_dataset == 'wdpa':
-                groupby_list += ['wdpa_id']
+        # convert year + day to date
+        df_groupby['alert_date'] = df_groupby.apply(lambda row: to_jd(row['year'], row['julian_day']), axis=1)
+        del df_groupby['year'], df_groupby['julian_day'], df_groupby['area_m2']
 
-            df_groupby = df.groupby(groupby_list)['alerts', ].sum().reset_index()
-            final_record_list = df_groupby.to_dict(orient='records')
+        # create date string that elastic can recognize
+        df_groupby.alert_date = df_groupby.alert_date.dt.strftime('%Y/%m/%d')
 
-        else:
-            print 'filtering CSV- regular glad'
+        # sort so elastic gets bound1/bound2 field types right
+        df_groupby = df_groupby.sort_values('bound2', ascending=False)
+        print df_groupby.head()
 
-            # group by day and year, then sum
-            groupby_list = ['country_iso', 'state_id', 'day', 'year', 'confidence']
-
-            # df_groupby = df.groupby(groupby_list)['alerts', 'above_ground_carbon_loss', 'area_m2'].sum()
-            df_groupby = df.groupby(groupby_list)['alerts', ].sum()
-
-            # df -> list of records
-            final_record_list = df_to_json.df_to_json(df_groupby)
+        # df -> list of records
+        final_record_list = df_groupby.to_dict(orient='records')
 
         print 'finished filtering/groupby'
 
@@ -102,9 +105,12 @@ def output_json(pip_result_csv, api_endpoint_object, environment, update_name=No
     elif update_name == 'climate':
         print 'filtering CSV for climate'
 
+        print 'selecting gadm28 polygons only'
+        df = df[df.polyname == 'gadm28']
+
         # filter: confirmed only
         print 'filtering to select where confidence == 3'
-        df = df[df['confidence'] == 3]
+        df = df[df.confidence == 3]
 
         # filter: where climate_mask is 1 or where other countries exist
         # don't want to include RUS for climate stuff for now
@@ -113,17 +119,19 @@ def output_json(pip_result_csv, api_endpoint_object, environment, update_name=No
                         'GAB', 'BRN', 'CAF', 'GNQ', 'PNG', 'SGP', 'RWA']
 
         print 'filtering to select country list, or where climate_mask == 1'
-        df = df[(df['climate_mask'] == 1) | (df['country_iso'].isin(country_list))]
+        df = df[(df['climate_mask'] == 1) | (df['iso'].isin(country_list))]
+
+        print df.head()
 
         # 1/1/2016 should be categorized as week 53 of 2015. This code creates that proper combination of
         # week# and year based on ISO calendar
 
         print 'calculating week and year for each date'
-        df['week'], df['year'] = zip(*df.apply(lambda row: json_groupby_week.build_week_lookup(row['day'], row['year']), axis=1))
+        df['week'], df['year'] = zip(*df.apply(lambda row: json_groupby_week.build_week_lookup(row['julian_day'], row['year']), axis=1))
 
         # group by week and year, then sum
         print 'grouping by week and year, summing alerts, above_ground_carbon_loss and area_m2'
-        groupby_list = ['country_iso', 'state_id', 'week', 'year', 'confidence', 'climate_mask']
+        groupby_list = ['iso', 'adm1', 'week', 'year', 'confidence', 'climate_mask']
         df_groupby = df.groupby(groupby_list)['alerts', 'above_ground_carbon_loss', 'area_m2'].sum()
 
         # df -> list of records, so we can run the cumulative values
@@ -139,29 +147,6 @@ def output_json(pip_result_csv, api_endpoint_object, environment, update_name=No
         final_record_list = insert_dummyweeks.insert_dummy_cumulative_rows(cum_record_list)
         print 'finished filtering/groupby for climate'
 
-    elif update_name == 'month':
-
-        print 'filtering CSV for month'
-        print df
-        print df.columns
-
-        df['month'] = df.apply(util.df_year_day_to_month, axis=1)
-        print df
-
-        if api_endpoint_object.forest_dataset == 'umd_landsat_alerts_month':
-            groupby_list = ['country_iso', 'state_id', 'year', 'month']
-            sum_field = 'alerts'
-
-        else:
-            groupby_list = ['country_id', 'state_id', 'year', 'month']
-            sum_field = 'count'
-
-        df_groupby = df.groupby(groupby_list)[sum_field, ].sum().reset_index()
-        print df_groupby
-        print df_groupby.columns
-
-        final_record_list = df_groupby.to_dict(orient='records')
-
     # Otherwise the output from hadoop_pip is already summarized for us, just need
     # to put it in [row, row, row, ...] format
     else:
@@ -170,4 +155,5 @@ def output_json(pip_result_csv, api_endpoint_object, environment, update_name=No
     # write outputs to final file (only push to s3 if prod or staging)
     write_outputs(final_record_list, api_endpoint_object.s3_url, environment)
 
-
+def to_jd(year, day):
+     return datetime.datetime(year, 1, 1) + datetime.timedelta(day - 1)

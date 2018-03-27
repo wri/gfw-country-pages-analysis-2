@@ -1,6 +1,7 @@
 import os
 import sys
 import subprocess
+import uuid
 
 import google_sheet as gs
 
@@ -17,54 +18,43 @@ sys.path.append(external_dir)
 from hadoop_pip import run_pip
 
 
-def pip(dataset_technical_name, associated_dataset_list, environment):
+def pip(dataset_technical_name, environment):
 
-    hadoop_config_list = []
-
-    # we have lots of associated datasets
-    # but only some we actually want to run in this process
-    matched_dataset_list = []
-
-    for associated_dataset_name in associated_dataset_list:
-            config = gs.get_hadoop_config(dataset_technical_name, associated_dataset_name, environment)
-
-            if config:
-                hadoop_config_list.append(config)
-                matched_dataset_list.append(associated_dataset_name)
+    config = gs.get_hadoop_config(dataset_technical_name, environment)
 
     # Run hadoop process only if the environment is prod/staging
     if environment in ['prod', 'staging']:
-        s3_result_list = run_pip.run(hadoop_config_list)
+        s3_result_list = run_pip.run([config])
 
         # Response from hadoop comes back as list of lists
-        # Example: [[s3://gfw2-data/alerts-tsv/hadoop-jobs/bb858284-8c4d-4e00-8473-69cef650a7f3/output1.csv",
-        # r"r"s3://gfw2-data/alerts-tsv/peru_export.csv"]]
+        # Example: [[s3://gfw2-data/alerts-tsv/hadoop-jobs/bb858284-8c4d-4e00-8473-69cef650a7f3/output1.csv"]]
 
-        # We may have submitted multiple jobs, but for each we only want the first item in the list
-        s3_result_list = [x[0] for x in s3_result_list]
+        # Grab s3 output
+        s3_result = [x[0] for x in s3_result_list][0]
+        local_file = download_result(s3_result)
 
     else:
-        s3_result_list = matched_dataset_list
+        # example GLAD results - used for testing
+        local_file = '~/Desktop/dev/gfw-country-pages-analysis-2/results/e058be6e-416f-456d-ad7f-3b6697597604/output.csv'
 
-    local_result_list = download_results(matched_dataset_list, s3_result_list, environment)
-
-    return zip(matched_dataset_list, local_result_list)
+    return local_file
 
 
-def download_results(associated_dataset_list, s3_result_list, environment):
+def download_result(s3_path):
 
-    local_result_list = []
-    output_dir = os.path.join(root_dir, 'results')
+    # generate unique id
+    guid = str(uuid.uuid4())
+    output_dir = os.path.join(root_dir, 'results', guid)
+    os.mkdir(output_dir)
 
-    for associated_dataset, s3_path in zip(associated_dataset_list, s3_result_list):
-        output_file = os.path.join(output_dir, associated_dataset + '.csv')
+    output_file = os.path.join(output_dir, 'output.csv')
+    print 'Downloading {} to {}'.format(s3_path, output_file)
 
-        # If we've actually used hadoop to create this data, download it
-        # otherwise just use the output data in the local folder
-        if environment in ['prod', 'staging']:
-            cmd = ['aws', 's3', 'cp', s3_path, output_file]
-            subprocess.check_call(cmd, shell=True)
+    shell = False
+    if os.name == 'nt':
+        shell = True
 
-        local_result_list.append(output_file)
+    cmd = ['aws', 's3', 'cp', s3_path, output_file]
+    subprocess.check_call(cmd, shell=shell)
 
-    return local_result_list
+    return output_file

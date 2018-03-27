@@ -63,10 +63,10 @@ def get_associated_values(sheet_name, input_col_name, column_value_list, output_
     return [x[output_col_name] for x in filtered_rows]
 
 
-def get_hadoop_config(input_dataset_name, associated_dataset_name, environment):
+def get_hadoop_config(input_dataset_name, environment):
 
     hadoop_config = None
-    input_tuple = (input_dataset_name, associated_dataset_name, environment)
+    input_tuple = (input_dataset_name, environment)
 
     hadoop_rows = get_all_gdoc_rows('hadoop')
     header_row = hadoop_rows[0]
@@ -74,7 +74,7 @@ def get_hadoop_config(input_dataset_name, associated_dataset_name, environment):
     for row in hadoop_rows[1:]:
         row_dict = dict(zip(header_row, row))
 
-        row_tuple = (row_dict['forest_dataset'], row_dict['contextual_dataset'], row_dict['version'])
+        row_tuple = (row_dict['forest_dataset'], row_dict['version'])
 
         if set(row_tuple) == set(input_tuple):
             root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -84,46 +84,6 @@ def get_hadoop_config(input_dataset_name, associated_dataset_name, environment):
             hadoop_config = os.path.join(config_dir, hadoop_filename)
 
     return hadoop_config
-
-
-def validate_associated_dataset(input_tech_title, input_associated_dataset):
-
-    all_associated_datasets = list(set(get_associated_datasets(input_tech_title)))
-
-    if input_associated_dataset not in all_associated_datasets:
-        raise ValueError('Dataset {} not in config sheet for {}, try one of the following: {}.'.format(
-            input_associated_dataset, input_tech_title, ', '.join(all_associated_datasets)))
-
-
-def get_associated_datasets(input_tech_title):
-
-    sheet_name = get_sheet_name(input_tech_title, True)
-    country_list = get_associated_values(sheet_name, 'DATASET_TECHNICAL_NAME', [input_tech_title], 'ISO_code')
-
-    associated_dataset_list = build_associated_dataset_list(input_tech_title, country_list)
-
-    return associated_dataset_list
-
-
-def build_associated_dataset_list(input_tech_title, country_list):
-
-    sheet_name = get_sheet_name(input_tech_title, False)
-
-    out_list = []
-
-    gdoc_as_lists = get_all_gdoc_rows(sheet_name)
-    header_row = gdoc_as_lists[0]
-
-    for row in gdoc_as_lists[1:]:
-        row_dict = dict(zip(header_row, row))
-
-        iso_code = row_dict['ISO_code']
-        if iso_code in country_list:
-            dataset = row_dict['DATASET_TECHNICAL_NAME']
-
-            out_list.append(dataset)
-
-    return out_list
 
 
 def get_sheet_name(input_tech_title, same_sheet=True):
@@ -170,7 +130,7 @@ class SheetLayerDef(object):
         self.__dict__.update(entries)
 
 
-def get_api_endpoint(dataset1, dataset2, environment):
+def get_api_endpoint(forest_change_dataset, environment):
 
     gdoc_data_rows = get_all_gdoc_rows('api_endpoint_lookup')
     header_row = gdoc_data_rows[0]
@@ -180,15 +140,14 @@ def get_api_endpoint(dataset1, dataset2, environment):
     for row in gdoc_data_rows[1:]:
         row_dict = dict(zip(header_row, row))
 
-        forest_match = row_dict['forest_dataset'] == dataset1 or row_dict['forest_dataset'] == dataset2
-        contextual_match = row_dict['contextual_dataset'] == dataset1 or row_dict['contextual_dataset'] == dataset2
+        forest_match = row_dict['forest_dataset'] == forest_change_dataset
         version_match = row_dict['version'] == environment
 
-        if forest_match and contextual_match and version_match:
+        if forest_match and version_match:
             api_endpoint_def = SheetLayerDef(**row_dict)
             break
 
-    if api_endpoint_def is None:
+    if not api_endpoint_def:
         raise ValueError("No matching record in the google "
                          "sheet for datasets: {}, {} and version {}".format(dataset1, dataset2, environment))
 
