@@ -17,12 +17,12 @@ def sync(api_dataset_id, s3_url, environment):
     else:
         pass
 
-    if environment in ['staging', 'production']:
+    if environment in ['staging', 'prod']:
         headers = {'Content-Type': 'application/json', 'Authorization': 'Bearer {0}'.format(token)}
         overwrite_dataset(headers, api_url, api_dataset_id, s3_url)
 
 
-@retry(wait_exponential_multiplier=1000, wait_exponential_max=10000, stop_max_delay=10000)
+@retry(wait_exponential_multiplier=1000, wait_exponential_max=100000, stop_max_delay=100000)
 def make_request(headers, api_endpoint, request_type, payload, status_code_required):
 
     if request_type == 'POST':

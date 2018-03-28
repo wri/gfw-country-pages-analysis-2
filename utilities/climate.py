@@ -28,7 +28,9 @@ def cumsum(df):
     join_fields = ['iso', 'adm1', 'year', 'week']
     merged = pd.merge(dummy_df, df, on=join_fields, how='left')
 
-    # fill loss and emissions data with 0 weeks without GLAD alerts
+    # fill dummy weeks with appropriate N/A values
+    merged.confidence.fillna('confirmed', inplace=True)
+    merged.alerts.fillna(0, inplace=True)
     merged.above_ground_carbon_loss.fillna(0, inplace=True)
     merged.loss_ha.fillna(0, inplace=True)
 
@@ -67,6 +69,9 @@ def format_df(df):
 
     # rename columns to fit regular climate schema
     df = df.rename(columns={'adm1': 'state_id', 'iso': 'country_iso'})
+
+    # sort DF so that elastic guesses each field type correctly
+    df = df.sort_values('alerts', ascending=False)
 
     return df
 
