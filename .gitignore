@@ -33,6 +33,7 @@ htmlcov/
 .cache
 nosetests.xml
 coverage.xml
+*.csv
 
 # Translations
 *.mo
@@ -77,3 +78,4 @@ final_outfile.json
 analysis/outfile.json
 
 results/*
+.DS_Store

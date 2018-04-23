@@ -2,6 +2,45 @@ import datetime
 
 import pandas as pd
 
+import util
+
+
+def climate_table_update(df, api_endpoint_object):
+    df = df.copy()
+
+    print 'selecting gadm28 polygons and confirmed alerts only'
+    df = df[(df.polyname == 'gadm28') & (df.confidence == 3)]
+
+    # change confidence to user-friendly label (not '3')
+    df['confidence'] = 'confirmed'
+
+    # convert loss in area_m2 to ha
+    df['loss_ha'] = df.area_m2 / 10000
+    del df['area_m2']
+
+    # filter: where climate_mask is 1 or where other countries exist
+    # don't want to include RUS for climate stuff for now
+    # MYS, IDN and COD not included-- must have climate_mask == 1 to be valid
+    country_list = ['BRA', 'PER', 'COG', 'UGA', 'TLS', 'CMR', 'BDI',
+                    'GAB', 'BRN', 'CAF', 'GNQ', 'PNG', 'SGP', 'RWA']
+
+    print 'filtering to select country list, or where climate_mask == 1'
+    df = df[(df['climate_mask'] == 1) | (df['iso'].isin(country_list))]
+
+    # 1/1/2016 should be categorized as week 53 of 2015. This code creates that proper combination of
+    # week# and year based on ISO calendar
+    print 'calculating week and year for each date'
+    df['week'], df['year'] = zip(*df.apply(lambda row: util.build_week_lookup(row), axis=1))
+
+    # group by week and year, then sum
+    print 'grouping by week and year, summing alerts, above_ground_carbon_loss and loss_ha'
+    groupby_list = ['iso', 'adm1', 'week', 'year', 'confidence']
+    sum_list = ['alerts', 'above_ground_carbon_loss', 'loss_ha']
+    df_groupby = df.groupby(groupby_list)[sum_list].sum().reset_index()
+
+    final_df = cumsum(df_groupby)
+
+    return final_df
 
 
 def cumsum(df):
@@ -47,15 +86,6 @@ def cumsum(df):
     merged = add_emissions_targets(merged)
 
     return format_df(merged)
-
-
-def build_week_lookup(row):
-
-    as_date = datetime.date(row['year'], 1, 1) + datetime.timedelta(row['julian_day'] - 1)
-    year_num = as_date.isocalendar()[0]
-    week_num = as_date.isocalendar()[1]
-
-    return week_num, year_num
 
 
 def format_df(df):

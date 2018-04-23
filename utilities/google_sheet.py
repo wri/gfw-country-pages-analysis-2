@@ -131,24 +131,29 @@ class SheetLayerDef(object):
 
 
 def get_api_endpoint(forest_change_dataset, environment):
-
     gdoc_data_rows = get_all_gdoc_rows('api_endpoint_lookup')
+
     header_row = gdoc_data_rows[0]
 
     api_endpoint_def = None
 
+    # set up list to contain all rows we want to update
+    summaries_to_create = []
     for row in gdoc_data_rows[1:]:
+
         row_dict = dict(zip(header_row, row))
 
         forest_match = row_dict['forest_dataset'] == forest_change_dataset
         version_match = row_dict['version'] == environment
 
         if forest_match and version_match:
+
             api_endpoint_def = SheetLayerDef(**row_dict)
-            break
+
+            summaries_to_create.append(api_endpoint_def)
 
     if not api_endpoint_def:
         raise ValueError("No matching record in the google "
                          "sheet for datasets: {}, {} and version {}".format(dataset1, dataset2, environment))
 
-    return api_endpoint_def
+    return summaries_to_create
