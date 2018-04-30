@@ -26,7 +26,10 @@ def glad_table_update(df, api_endpoint_object):
     df = df[df.iso.isin(valid_iso_list)]
 
     # create column "alert_date from julian_day and year"
-    df['alert_date']= df.apply(lambda row: julian_date_from_yrday(row), axis=1)
+    df['alert_date'] = df.apply(lambda row: julian_date_from_yrday(row), axis=1)
+
+    # drop columns that we don't want to aggregate by
+    df.drop(['area_m2', 'julian_day', 'climate_mask', 'confidence'], axis=1, inplace=True)
 
     # convert string date to dt object
     print 'Converting date string to object'
@@ -40,9 +43,7 @@ def glad_table_update(df, api_endpoint_object):
     del df['alert_date']
 
     df_with_missing_weeks = add_missing_week_year(df)
-
     final_df = group_and_to_csv(df_with_missing_weeks, api_endpoint_object.summary_type)
-    final_df.drop(['area_m2', 'julian_day', 'climate_mask'], axis=1, inplace=True)
 
     return final_df
 
@@ -54,7 +55,7 @@ def add_missing_week_year(df):
     year_week_df = df.groupby(['week', 'year']).size().reset_index()
     del year_week_df[0]
 
-    adm_list = ['polyname', 'bound1', 'bound2', 'iso', 'adm1', 'adm2', 'confidence']
+    adm_list = ['polyname', 'bound1', 'bound2', 'iso', 'adm1', 'adm2']
     polyname_df = df.groupby(adm_list).size().reset_index()
     del polyname_df[0]
 

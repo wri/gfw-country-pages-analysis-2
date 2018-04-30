@@ -19,6 +19,7 @@ class Layer(object):
         self.environment = environment
 
         self.results_list = None
+        self.result_csv = None
         self.update_api_dict = {}
 
     def calculate_summary_values(self):
@@ -34,7 +35,6 @@ class Layer(object):
 
         # iterate over types of summaries to create
         for cp_api_endpoint_object in cp_api_endpoint_objects_list:
-
             self.process_table(hadoop_output_df, cp_api_endpoint_object)
 
             # Add dataset ID and S3 URL of matching dataset to the update_api_dict
@@ -43,7 +43,6 @@ class Layer(object):
     def push_to_gfw_api(self):
 
         for api_dataset_id, s3_url in self.update_api_dict.iteritems():
-
             print 'Pushing {0} to dataset ID {1} on the ' \
                   'GFW country pages API'.format(s3_url, api_dataset_id)
             api.sync(api_dataset_id, s3_url, self.environment)
@@ -59,15 +58,13 @@ class Layer(object):
         """
 
         print 'processing update for {0}, summing by {1}'.format(api_endpoint_object.forest_dataset,
-                                                        api_endpoint_object.summary_type)
+                                                                 api_endpoint_object.summary_type)
 
         # Custom process/filtering for climate data
         if api_endpoint_object.summary_type == 'climate':
-
             final_df = climate.climate_table_update(df, api_endpoint_object)
 
         elif api_endpoint_object.summary_type in ['iso', 'adm1', 'adm2']:
-
             final_df = glad_table_update.glad_table_update(df, api_endpoint_object)
 
         else:
