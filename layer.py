@@ -26,7 +26,6 @@ class Layer(object):
 
         # run hadoop process to get table to summarize
         self.result_csv = hadoop.pip(self.dataset_technical_name, self.environment)
-        sys.exit()
         print 'processing {}'.format(self.dataset_technical_name)
         cp_api_endpoint_objects_list = gs.get_api_endpoint(self.dataset_technical_name, self.environment)
 

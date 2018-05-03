@@ -9,12 +9,9 @@ dataset_lookup_key = r'174wtlPMWENa1FCYXHqzwvZB5vi7DjLwX-oQjaUEdxzo'
 
 def get_valid_inputs():
 
-    forest_change_datasets = get_column_values('forest_change_iso_lookup', 'DATASET_TECHNICAL_NAME')
-    contextual_datasets = get_column_values('contextual_iso_lookup', 'DATASET_TECHNICAL_NAME')
+    input_datasets = get_column_values('api_endpoint_lookup', 'forest_dataset')
 
-    unique_datasets = forest_change_datasets + contextual_datasets
-
-    return unique_datasets
+    return list(set(input_datasets))
 
 
 def get_column_values(sheet_name, col_name):
@@ -30,37 +27,12 @@ def get_column_values(sheet_name, col_name):
     return unique_values
 
 
-def filter_gdoc_rows(sheet_name, column_name, column_value_list):
-
-    output_list = []
-    gdoc_as_lists = get_all_gdoc_rows(sheet_name)
-
-    header_row = gdoc_as_lists[0]
-    col_index = header_row.index(column_name)
-    data_rows = gdoc_as_lists[1:]
-
-    for row in data_rows:
-        if row[col_index] in column_value_list:
-            output_list.append(dict(zip(header_row, row)))
-        else:
-            pass
-
-    return output_list
-
-
 def get_all_gdoc_rows(sheet_name):
 
     wks = _open_spreadsheet(sheet_name)
     gdoc_as_lists = wks.get_all_values()
 
     return gdoc_as_lists
-
-
-def get_associated_values(sheet_name, input_col_name, column_value_list, output_col_name):
-
-    filtered_rows = filter_gdoc_rows(sheet_name, input_col_name, column_value_list)
-
-    return [x[output_col_name] for x in filtered_rows]
 
 
 def get_hadoop_config(input_dataset_name, environment):
@@ -84,24 +56,6 @@ def get_hadoop_config(input_dataset_name, environment):
             hadoop_config = os.path.join(config_dir, hadoop_filename)
 
     return hadoop_config
-
-
-def get_sheet_name(input_tech_title, same_sheet=True):
-    forest_change_datasets = get_column_values('forest_change_iso_lookup', 'DATASET_TECHNICAL_NAME')
-
-    if input_tech_title in forest_change_datasets:
-        if same_sheet:
-            sheet_name = 'forest_change_iso_lookup'
-        else:
-            sheet_name = 'contextual_iso_lookup'
-
-    else:
-        if same_sheet:
-            sheet_name = 'forest_change_iso_lookup'
-        else:
-            sheet_name = 'contextual_iso_lookup'
-
-    return sheet_name
 
 
 def _open_spreadsheet(sheet_name):
@@ -157,3 +111,4 @@ def get_api_endpoint(forest_change_dataset, environment):
                          "sheet for datasets: {}, {} and version {}".format(dataset1, dataset2, environment))
 
     return summaries_to_create
+
