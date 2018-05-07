@@ -3,6 +3,21 @@ import datetime
 import pandas as pd
 
 
+def fires_table_update(df, api_endpoint_object):
+    df = df.copy()
+
+    # make sure that bound1 and bound2 are strings
+    df.bound1 = df.bound1.astype(str)
+    df.bound2 = df.bound2.astype(str)
+
+    # figure out week and year based on isocalendar
+
+    df['week'], df['year'] = zip(*df.apply(lambda row: build_week_lookup(row), axis=1))
+
+    del df['alert_date']
+
+    return group_and_to_csv(df, api_endpoint_object)
+
 def glad_table_update(df, api_endpoint_object):
 
     df = df.copy()
@@ -43,7 +58,7 @@ def glad_table_update(df, api_endpoint_object):
     del df['alert_date']
 
     df_with_missing_weeks = add_missing_week_year(df)
-    final_df = group_and_to_csv(df_with_missing_weeks, api_endpoint_object.summary_type)
+    final_df = group_and_to_csv(df_with_missing_weeks, api_endpoint_object)
 
     return final_df
 
@@ -77,16 +92,23 @@ def add_missing_week_year(df):
     return joined_df
 
 
-def group_and_to_csv(df, summary_type):
+def group_and_to_csv(df, api_endpoint_object):
 
     group_list = df.columns.tolist()
-    sum_list = ['above_ground_carbon_loss', 'alerts', 'area_ha']
+
+    if api_endpoint_object.forest_dataset == 'fires':
+
+        group_list.remove('alerts')
+        sum_list = ['alerts']
+
+    else:
+        sum_list = ['above_ground_carbon_loss', 'alerts', 'area_ha']
 
     # exclude these columns from our groupby
     # if we're grouping at level 0, we want to exclude adm1 and adm2, etc
 
     level_lkp = {'iso': 0, 'adm1': 1, 'adm2': 2}
-    adm_level_int = level_lkp[summary_type]
+    adm_level_int = level_lkp[api_endpoint_object.summary_type]
 
     adm_lkp = {0: 'iso', 1: 'adm1', 2: 'adm2'}
 

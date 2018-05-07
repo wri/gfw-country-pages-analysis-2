@@ -26,15 +26,17 @@ class Layer(object):
 
         # run hadoop process to get table to summarize
         self.result_csv = hadoop.pip(self.dataset_technical_name, self.environment)
-        sys.exit()
+        # result_csv = 'results/495bfc26-1a33-4171-b765-f8962ce4b3f5/output.csv'
+
         print 'processing {}'.format(self.dataset_technical_name)
         cp_api_endpoint_objects_list = gs.get_api_endpoint(self.dataset_technical_name, self.environment)
 
         # Process the hadoop CSV into JSON, and write the output
         hadoop_output_df = util.hadoopresult_to_df(self.result_csv, self.dataset_technical_name)
 
-        # iterate over types of summaries to create
+        # iterate over types of summaries to create (iso, adm1, adm2)
         for cp_api_endpoint_object in cp_api_endpoint_objects_list:
+
             self.process_table(hadoop_output_df, cp_api_endpoint_object)
 
             # Add dataset ID and S3 URL of matching dataset to the update_api_dict
@@ -65,7 +67,14 @@ class Layer(object):
             final_df = climate.climate_table_update(df, api_endpoint_object)
 
         elif api_endpoint_object.summary_type in ['iso', 'adm1', 'adm2']:
-            final_df = glad_table_update.glad_table_update(df, api_endpoint_object)
+            if api_endpoint_object.forest_dataset == 'umd_landsat_alerts':
+                final_df = glad_table_update.glad_table_update(df, api_endpoint_object)
+
+            elif api_endpoint_object.forest_dataset == 'fires':
+                final_df = glad_table_update.fires_table_update(df, api_endpoint_object)
+            else:
+                print "no valid forest type found" ## need to work on this exception
+
 
         else:
             final_df = df

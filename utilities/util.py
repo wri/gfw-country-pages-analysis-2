@@ -49,10 +49,13 @@ def hadoopresult_to_df(result_csv, dataset_tech_name):
     umd_landsat_alerts_fields = ['confidence', 'year', 'julian_day', 'area_m2', 'above_ground_carbon_loss',
                                 'climate_mask', 'polyname', 'bound1', 'bound2', 'iso', 'adm1', 'adm2', 'alerts']
 
-    analysis_fields_dict = {'terra_i_alerts': terra_i_alerts_fields,
-                            'umd_landsat_alerts': umd_landsat_alerts_fields}
+    fire_alerts_fields = ['alert_date', 'fire_type', 'polyname', 'bound1', 'bound2', 'iso', 'adm1', 'adm2', 'alerts']
 
-    # read in field names from google sheet
+    analysis_fields_dict = {'terra_i_alerts': terra_i_alerts_fields,
+                            'umd_landsat_alerts': umd_landsat_alerts_fields,
+                            'fires': fire_alerts_fields}
+
+    # read in field names
     field_names = analysis_fields_dict[dataset_tech_name]
 
     # csv to pandas data frame
@@ -65,7 +68,6 @@ def hadoopresult_to_df(result_csv, dataset_tech_name):
     return df
 
 def write_outputs(results_df, output_s3_path, environment):
-
     root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     results_dir = os.path.join(root_dir, 'results')
 
@@ -73,7 +75,6 @@ def write_outputs(results_df, output_s3_path, environment):
     print "output s3 path: {}".format(output_s3_path)
 
     results_csv = os.path.join(results_dir, basename)
-
 
     # write to csv
     results_df.to_csv(results_csv, index=False)
