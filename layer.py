@@ -3,7 +3,7 @@ import json
 import subprocess
 import os, sys
 
-from utilities import google_sheet as gs, hadoop, api, calculate_stats, util, climate, glad_table_update
+from utilities import google_sheet as gs, hadoop, api, calculate_stats, util, climate, table_update
 
 
 class Layer(object):
@@ -67,10 +67,10 @@ class Layer(object):
 
         elif api_endpoint_object.summary_type in ['iso', 'adm1', 'adm2']:
             if api_endpoint_object.forest_dataset == 'umd_landsat_alerts':
-                final_df = glad_table_update.glad_table_update(df, api_endpoint_object)
+                final_df = table_update.glad_table_update(df, api_endpoint_object)
 
             elif api_endpoint_object.forest_dataset == 'fires':
-                final_df = glad_table_update.fires_table_update(df, api_endpoint_object)
+                final_df = table_update.fires_table_update(df, api_endpoint_object)
             else:
                 print "no valid forest type found" ## need to work on this exception
 

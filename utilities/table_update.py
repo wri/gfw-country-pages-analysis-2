@@ -10,7 +10,11 @@ def fires_table_update(df, api_endpoint_object):
     df.bound1 = df.bound1.astype(str)
     df.bound2 = df.bound2.astype(str)
 
-    # figure out week and year based on isocalendar
+    # convert string date to dt object
+    print 'Converting date string to object'
+
+    df.alert_date = pd.to_datetime(df.alert_date, infer_datetime_format=True, format='%Y/%m/%d')
+    df.alert_date = df.alert_date.dt.date
 
     df['week'], df['year'] = zip(*df.apply(lambda row: build_week_lookup(row), axis=1))
 
