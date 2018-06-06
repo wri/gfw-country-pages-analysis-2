@@ -6,7 +6,7 @@ Here's a visualization of one of these summary tables-- the graph of weekly GLAD
 http://climate.globalforestwatch.org/insights/glad-alerts/BRA
 
 ### Kickoff the process
-`python update_country_stats.py -l umd_landsat_alerts -e prod`
+`python update_country_stats.py -d umd_landsat_alerts -e prod`
 
 
 ### Identify polygon datasets based on our input alert data
