@@ -61,6 +61,11 @@ def hadoopresult_to_df(result_csv, dataset_tech_name):
     # csv to pandas data frame
     df = pd.read_csv(result_csv, names=field_names)
 
+    # convert string date to dt object
+    print 'Converting date string to object'
+    df.alert_date = pd.to_datetime(df.alert_date, infer_datetime_format=True, format='%Y/%m/%d')
+    df.alert_date = df.alert_date.dt.date
+
     # fill blank bounds - can cause issues if we groupby null values
     df.bound1 = df.bound1.fillna(1)
     df.bound2 = df.bound2.fillna(1)

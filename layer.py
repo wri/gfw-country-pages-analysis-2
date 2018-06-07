@@ -25,21 +25,33 @@ class Layer(object):
     def calculate_summary_values(self):
 
         # run hadoop process to get table to summarize
-        self.result_csv = hadoop.pip(self.dataset_technical_name, self.environment)
-
+        #self.result_csv = hadoop.pip(self.dataset_technical_name, self.environment)
+        result_csv = 'output.csv'
         print 'processing {}'.format(self.dataset_technical_name)
         cp_api_endpoint_objects_list = gs.get_api_endpoint(self.dataset_technical_name, self.environment)
 
         # Process the hadoop CSV into JSON, and write the output
-        hadoop_output_df = util.hadoopresult_to_df(self.result_csv, self.dataset_technical_name)
+        hadoop_output_df = util.hadoopresult_to_df(result_csv, self.dataset_technical_name)
 
-        # iterate over types of summaries to create (iso, adm1, adm2)
+        # iterate over types of summaries to create (iso, adm1, adm2, all)
         for cp_api_endpoint_object in cp_api_endpoint_objects_list:
+            if cp_api_endpoint_object.summary_type == 'all':
 
-            self.process_table(hadoop_output_df, cp_api_endpoint_object)
+                # make sure that bound1 and bound2 are strings
+                hadoop_output_df.bound1 = hadoop_output_df.bound1.astype(str)
+                hadoop_output_df.bound2 = hadoop_output_df.bound2.astype(str)
+                hadoop_output_df = hadoop_output_df.sort_values('bound2', ascending=False)
+
+                # copy to s3
+                util.write_outputs(hadoop_output_df, cp_api_endpoint_object.s3_url, self.environment)
+            else:
+                self.process_table(hadoop_output_df, cp_api_endpoint_object)
 
             # Add dataset ID and S3 URL of matching dataset to the update_api_dict
+            print "updating api dict with key: {0}, value: {1}".format(cp_api_endpoint_object.dataset_id,
+                                                                       cp_api_endpoint_object.web_url)
             self.update_api_dict[cp_api_endpoint_object.dataset_id] = cp_api_endpoint_object.web_url
+        print self.update_api_dict
 
     def push_to_gfw_api(self):
 
