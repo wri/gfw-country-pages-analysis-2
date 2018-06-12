@@ -25,13 +25,12 @@ class Layer(object):
     def calculate_summary_values(self):
 
         # run hadoop process to get table to summarize
-        #self.result_csv = hadoop.pip(self.dataset_technical_name, self.environment)
-        result_csv = 'output.csv'
-        print 'processing {}'.format(self.dataset_technical_name)
+        self.result_csv = hadoop.pip(self.dataset_technical_name, self.environment)
+
         cp_api_endpoint_objects_list = gs.get_api_endpoint(self.dataset_technical_name, self.environment)
 
         # Process the hadoop CSV into JSON, and write the output
-        hadoop_output_df = util.hadoopresult_to_df(result_csv, self.dataset_technical_name)
+        hadoop_output_df = util.hadoopresult_to_df(self.result_csv, self.dataset_technical_name)
 
         # iterate over types of summaries to create (iso, adm1, adm2, all)
         for cp_api_endpoint_object in cp_api_endpoint_objects_list:
