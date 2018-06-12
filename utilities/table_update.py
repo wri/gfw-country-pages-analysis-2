@@ -1,5 +1,3 @@
-import datetime
-
 import pandas as pd
 
 
@@ -15,6 +13,7 @@ def fires_table_update(df, api_endpoint_object):
     del df['alert_date']
 
     return group_and_to_csv(df, api_endpoint_object)
+
 
 def glad_table_update(df, api_endpoint_object):
 
@@ -38,17 +37,8 @@ def glad_table_update(df, api_endpoint_object):
 
     df = df[df.iso.isin(valid_iso_list)]
 
-    # create column "alert_date from julian_day and year"
-    df['alert_date'] = df.apply(lambda row: julian_date_from_yrday(row), axis=1)
-
     # drop columns that we don't want to aggregate by
     df.drop(['area_m2', 'julian_day', 'climate_mask', 'confidence'], axis=1, inplace=True)
-
-    # # convert string date to dt object
-    # print 'Converting date string to object'
-    #
-    # df.alert_date = pd.to_datetime(df.alert_date, infer_datetime_format=True, format='%Y/%m/%d')
-    # df.alert_date = df.alert_date.dt.date
 
     # figure out week and year based on isocalendar
     df['week'], df['year'] = zip(*df.apply(lambda row: build_week_lookup(row), axis=1))
@@ -127,10 +117,3 @@ def build_week_lookup(row):
     year_num, week_num, _ = row['alert_date'].isocalendar()
     return week_num, year_num
 
-
-def julian_date_from_yrday(row):
-    alert_year = row['year']
-    j_day = row['julian_day']
-    alert_date = (datetime.datetime(alert_year, 1, 1) + datetime.timedelta(j_day)).strftime('%Y%m%d')
-
-    return alert_date

@@ -4,6 +4,7 @@ import datetime
 import pandas as pd
 import subprocess
 
+
 def load_json_from_token(file_name):
 
     root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -44,7 +45,7 @@ def julian_date_from_yrday(row):
 
 def hadoopresult_to_df(result_csv, dataset_tech_name):
 
-    terra_i_alerts_fields =  ['year', 'day', 'polyname', 'bound1', 'bound2', 'iso', 'adm1', 'adm2', 'alerts']
+    terra_i_alerts_fields = ['year', 'day', 'polyname', 'bound1', 'bound2', 'iso', 'adm1', 'adm2', 'alerts']
 
     umd_landsat_alerts_fields = ['confidence', 'year', 'julian_day', 'area_m2', 'above_ground_carbon_loss',
                                 'climate_mask', 'polyname', 'bound1', 'bound2', 'iso', 'adm1', 'adm2', 'alerts']
@@ -63,7 +64,13 @@ def hadoopresult_to_df(result_csv, dataset_tech_name):
 
     # convert string date to dt object
     print 'Converting date string to object'
-    df.alert_date = pd.to_datetime(df.alert_date, infer_datetime_format=True, format='%Y/%m/%d')
+    if dataset_tech_name == 'umd_landsat_alerts':
+        # create column "alert_date from julian_day and year"
+        df['alert_date'] = df.apply(lambda row: julian_date_from_yrday(row), axis=1)
+
+    else:
+        df.alert_date = pd.to_datetime(df.alert_date, infer_datetime_format=True, format='%Y/%m/%d')
+
     df.alert_date = df.alert_date.dt.date
 
     # fill blank bounds - can cause issues if we groupby null values
@@ -72,7 +79,9 @@ def hadoopresult_to_df(result_csv, dataset_tech_name):
 
     return df
 
+
 def write_outputs(results_df, output_s3_path, environment):
+
     root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     results_dir = os.path.join(root_dir, 'results')
 
@@ -88,3 +97,11 @@ def write_outputs(results_df, output_s3_path, environment):
     if environment in ['prod', 'staging']:
         cmd = ['aws', 's3', 'cp', results_csv, output_s3_path]
         subprocess.check_call(cmd)
+
+
+def julian_date_from_yrday(row):
+    alert_year = row['year']
+    j_day = row['julian_day']
+    alert_date = datetime.datetime(alert_year, 1, 1) + datetime.timedelta(j_day)
+
+    return alert_date
