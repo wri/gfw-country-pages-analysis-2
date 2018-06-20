@@ -8,7 +8,10 @@ def fires_table_update(df, api_endpoint_object):
     df.bound1 = df.bound1.astype(str)
     df.bound2 = df.bound2.astype(str)
 
-    df['week'], df['year'] = zip(*df.apply(lambda row: build_week_lookup(row), axis=1))
+    df['alert_date'] = pd.to_datetime(df.alert_date)
+    df['week'] = df.alert_date.dt.week
+    df['year'] = df.alert_date.dt.year
+    #df['week'], df['year'] = zip(*df.apply(lambda row: build_week_lookup(row), axis=1))
 
     del df['alert_date']
 
