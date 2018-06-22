@@ -26,6 +26,7 @@ class Layer(object):
 
         # run hadoop process to get table to summarize
         self.result_csv = hadoop.pip(self.dataset_technical_name, self.environment)
+
         cp_api_endpoint_objects_list = gs.get_api_endpoint(self.dataset_technical_name, self.environment)
 
         # Process the hadoop CSV into JSON, and write the output
@@ -34,6 +35,9 @@ class Layer(object):
         # iterate over types of summaries to create (iso, adm1, adm2, all)
         for cp_api_endpoint_object in cp_api_endpoint_objects_list:
             if cp_api_endpoint_object.summary_type == 'all':
+
+                # convert from datetime to date so we can serialize easily
+                hadoop_output_df.alert_date = hadoop_output_df.alert_date.dt.date
 
                 # make sure that bound1 and bound2 are strings
                 hadoop_output_df.bound1 = hadoop_output_df.bound1.astype(str)
@@ -73,17 +77,18 @@ class Layer(object):
 
         # Custom process/filtering for climate data
         if api_endpoint_object.summary_type == 'climate':
-            final_df = climate.climate_table_update(df, api_endpoint_object)
+            final_df = climate.climate_table_update(df)
 
         elif api_endpoint_object.summary_type in ['iso', 'adm1', 'adm2']:
+
             if api_endpoint_object.forest_dataset == 'umd_landsat_alerts':
                 final_df = table_update.glad_table_update(df, api_endpoint_object)
 
-            elif api_endpoint_object.forest_dataset == 'fires':
+            elif api_endpoint_object.forest_dataset in ['fires_report', 'fires_country_pages']:
                 final_df = table_update.fires_table_update(df, api_endpoint_object)
+
             else:
                 print "no valid forest type found" ## need to work on this exception
-
 
         else:
             final_df = df

@@ -8,10 +8,8 @@ def fires_table_update(df, api_endpoint_object):
     df.bound1 = df.bound1.astype(str)
     df.bound2 = df.bound2.astype(str)
 
-    df['alert_date'] = pd.to_datetime(df.alert_date)
     df['week'] = df.alert_date.dt.week
     df['year'] = df.alert_date.dt.year
-    #df['week'], df['year'] = zip(*df.apply(lambda row: build_week_lookup(row), axis=1))
 
     del df['alert_date']
 
@@ -44,7 +42,8 @@ def glad_table_update(df, api_endpoint_object):
     df.drop(['area_m2', 'julian_day', 'climate_mask', 'confidence'], axis=1, inplace=True)
 
     # figure out week and year based on isocalendar
-    df['week'], df['year'] = zip(*df.apply(lambda row: build_week_lookup(row), axis=1))
+    df['week'] = df.alert_date.dt.week
+    df['year'] = df.alert_date.dt.year
 
     del df['alert_date']
 
@@ -87,7 +86,7 @@ def group_and_to_csv(df, api_endpoint_object):
 
     group_list = df.columns.tolist()
 
-    if api_endpoint_object.forest_dataset == 'fires':
+    if api_endpoint_object.forest_dataset in ['fires_report', 'fires_country_pages']:
 
         group_list.remove('alerts')
         sum_list = ['alerts']
@@ -114,9 +113,3 @@ def group_and_to_csv(df, api_endpoint_object):
     grouped = grouped.sort_values('bound2', ascending=False)
 
     return grouped
-
-
-def build_week_lookup(row):
-    year_num, week_num, _ = row['alert_date'].isocalendar()
-    return week_num, year_num
-

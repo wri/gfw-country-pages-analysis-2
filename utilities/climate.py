@@ -1,15 +1,11 @@
-import datetime
-
 import pandas as pd
 
-import util
 
-
-def climate_table_update(df, api_endpoint_object):
+def climate_table_update(df):
     df = df.copy()
 
-    print 'selecting gadm28 polygons and confirmed alerts only'
-    df = df[(df.polyname == 'gadm28') & (df.confidence == 3)]
+    print 'selecting gadm28/admin polygons and confirmed alerts only'
+    df = df[(df.polyname.isin(['gadm28', 'admin'])) & (df.confidence == 3)]
 
     # change confidence to user-friendly label (not '3')
     df['confidence'] = 'confirmed'
@@ -30,7 +26,8 @@ def climate_table_update(df, api_endpoint_object):
     # 1/1/2016 should be categorized as week 53 of 2015. This code creates that proper combination of
     # week# and year based on ISO calendar
     print 'calculating week and year for each date'
-    df['week'], df['year'] = zip(*df.apply(lambda row: util.build_week_lookup(row), axis=1))
+    df['week'] = df.alert_date.dt.week
+    df['year'] = df.alert_date.dt.year
 
     # group by week and year, then sum
     print 'grouping by week and year, summing alerts, above_ground_carbon_loss and loss_ha'

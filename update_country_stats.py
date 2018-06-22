@@ -5,7 +5,6 @@ from utilities import validate as val
 
 
 def main():
-    # -d umd_landsat_alerts_iso -e test
     # Parse commandline arguments
     parser = argparse.ArgumentParser(description='Set input dataset environment.')
     parser.add_argument('--dataset', '-d', required=True, help='the tech title of the dataset that has been updated')
