@@ -18,7 +18,7 @@ def load_json_from_token(file_name):
 
 def hadoopresult_to_df(result_csv, dataset_tech_name):
 
-    terra_i_alerts_fields = ['year', 'day', 'polyname', 'bound1', 'bound2', 'iso', 'adm1', 'adm2', 'alerts']
+    terra_i_alerts_fields = ['year', 'julian_day', 'polyname', 'bound1', 'bound2', 'iso', 'adm1', 'adm2', 'alerts']
 
     umd_landsat_alerts_fields = ['confidence', 'year', 'julian_day', 'area_m2', 'above_ground_carbon_loss',
                                 'climate_mask', 'polyname', 'bound1', 'bound2', 'iso', 'adm1', 'adm2', 'alerts']
@@ -38,7 +38,7 @@ def hadoopresult_to_df(result_csv, dataset_tech_name):
 
     # convert string date to dt object
     print 'Converting date string to object'
-    if dataset_tech_name == 'umd_landsat_alerts':
+    if dataset_tech_name in ['umd_landsat_alerts', 'terra_i_alerts']:
         # create column "alert_date from julian_day and year"
         df['alert_date'] = df.apply(lambda row: julian_date_from_yrday(row), axis=1)
 

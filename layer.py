@@ -44,15 +44,23 @@ class Layer(object):
                 hadoop_output_df.bound2 = hadoop_output_df.bound2.astype(str)
                 hadoop_output_df = hadoop_output_df.sort_values('bound2', ascending=False)
 
+                # if it's GLAD and all, need to drop a bunch more fields
+                # we don't care about all the polyname stuff
+                if cp_api_endpoint_object.forest_dataset == 'umd_landsat_alerts':
+                    hadoop_output_df = table_update.glad_all_update(hadoop_output_df)
+
                 # copy to s3
                 util.write_outputs(hadoop_output_df, cp_api_endpoint_object.s3_url, self.environment)
+
             else:
                 self.process_table(hadoop_output_df, cp_api_endpoint_object)
 
             # Add dataset ID and S3 URL of matching dataset to the update_api_dict
             print "updating api dict with key: {0}, value: {1}".format(cp_api_endpoint_object.dataset_id,
                                                                        cp_api_endpoint_object.web_url)
+
             self.update_api_dict[cp_api_endpoint_object.dataset_id] = cp_api_endpoint_object.web_url
+
         print self.update_api_dict
 
     def push_to_gfw_api(self):

@@ -34,8 +34,8 @@ def pip(dataset_technical_name, environment):
         local_file = download_result(s3_result)
 
     else:
-        # example GLAD results - used for testing
-        local_file = '~/Desktop/dev/gfw-country-pages-analysis-2/results/e058be6e-416f-456d-ad7f-3b6697597604/output.csv'
+        # example terrai results - used for testing
+        local_file = r'D:\scripts\gfw-country-pages-analysis-2\results\270f8e87-f0e8-4ade-a585-7213ed8b4c27\output.csv'
 
     return local_file
 

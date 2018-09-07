@@ -16,6 +16,23 @@ def fires_table_update(df, api_endpoint_object):
     return group_and_to_csv(df, api_endpoint_object)
 
 
+def glad_all_update(df):
+
+    df = df.copy()
+
+    # we only want admin polygons - not currently providing all the wdpa / ifl / etc stuff
+    df = df[df.polyname == 'admin']
+
+    # filter to grab only relevant columns
+    col_list = ['confidence', 'iso', 'adm1', 'adm2', 'alert_date', 'alerts']
+    df = df[col_list]
+
+    # group and sum alerts now that we've dropped the other crap
+    df = df.groupby(col_list[0:5])['alerts'].sum().reset_index()
+
+    return df
+
+
 def glad_table_update(df, api_endpoint_object):
 
     df = df.copy()
