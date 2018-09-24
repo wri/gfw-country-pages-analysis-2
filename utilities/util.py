@@ -39,8 +39,21 @@ def hadoopresult_to_df(result_csv, dataset_tech_name):
     # convert string date to dt object
     print 'Converting date string to object'
     if dataset_tech_name in ['umd_landsat_alerts', 'terra_i_alerts']:
-        # create column "alert_date from julian_day and year"
-        df['alert_date'] = df.apply(lambda row: julian_date_from_yrday(row), axis=1)
+        # create column alert_date from julian_day and year
+        # previously we would do df.apply with our julian_date_from_yrday function
+        # but given the size of some of the input dataframes, we're running into memory errors
+        
+        # instead let's group by year + julian_day, then convert that subset to datetime
+        date_group_df = df.groupby(['year', 'julian_day']).size().reset_index()
+        
+        # now look up these unique combinations to datetime
+        date_group_df['alert_date'] = date_group_df.apply(lambda row: julian_date_from_yrday(row), axis=1)
+        
+        # delete extra size row
+        del date_group_df[0]
+        
+        # join back to main df
+        df = pd.merge(df, date_group_df, on=['year', 'julian_day'])
 
     else:
         df.alert_date = pd.to_datetime(df.alert_date, infer_datetime_format=True, format='%Y/%m/%d')
@@ -73,7 +86,7 @@ def write_outputs(results_df, output_s3_path, environment):
 
 def julian_date_from_yrday(row):
     alert_year = row['year']
-    j_day = row['julian_day']
+    j_day = int(row['julian_day'])
     alert_date = datetime.datetime(alert_year, 1, 1) + datetime.timedelta(j_day)
 
     return alert_date
