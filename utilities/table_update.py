@@ -46,15 +46,6 @@ def glad_table_update(df, api_endpoint_object):
     # convert area to ha from m2
     df['area_ha'] = df.area_m2 / 10000
 
-    # filter to remove stray countries
-    # not totally important, but will cut down on the # of rows,
-    # especially with the dummy rows we're adding
-    valid_iso_list = ['BDI', 'BRA', 'BRN', 'CAF', 'CMR', 'COD', 'COG', 'COL',
-                      'ECU', 'GAB', 'GNQ', 'GUF', 'GUY', 'IDN', 'MYS', 'PER',
-                      'PNG', 'RWA', 'SUR', 'TLS', 'UGA', 'VEN']
-
-    df = df[df.iso.isin(valid_iso_list)]
-
     # drop columns that we don't want to aggregate by
     df.drop(['area_m2', 'julian_day', 'climate_mask', 'confidence'], axis=1, inplace=True)
 
