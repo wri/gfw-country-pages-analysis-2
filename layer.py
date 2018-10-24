@@ -1,9 +1,4 @@
-import pandas as pd
-import json
-import subprocess
-import os, sys
-
-from utilities import google_sheet as gs, hadoop, api, calculate_stats, util, climate, table_update
+from utilities import google_sheet as gs, hadoop, api, util, climate, table_update
 
 
 class Layer(object):

@@ -11,9 +11,10 @@ external_dir = os.path.dirname(root_dir)
 sys.path.append(external_dir)
 
 # The hadoop_pip package must be in the external dir referenced above, i.e.:
+# Make sure that the folder is hadoop_pip, not hadoop-pip on your local file system
 # - Desktop
 #    - gfw-country-pages-analysis-2
-#    - hadoop-pip
+#    - hadoop_pip
 
 from hadoop_pip import run_pip
 
@@ -24,7 +25,13 @@ def pip(dataset_technical_name, environment):
 
     # Run hadoop process only if the environment is prod/staging
     if environment in ['prod', 'staging']:
-        s3_result_list = run_pip.run([config])
+
+        if dataset_technical_name == 'umd_landsat_alerts':
+            instance_count = 12
+        else:
+            instance_count = 6
+
+        s3_result_list = run_pip.run([config], instance_count=instance_count)
 
         # Response from hadoop comes back as list of lists
         # Example: [[s3://gfw2-data/alerts-tsv/hadoop-jobs/bb858284-8c4d-4e00-8473-69cef650a7f3/output1.csv"]]
