@@ -27,9 +27,9 @@ def pip(dataset_technical_name, environment):
     if environment in ['prod', 'staging']:
 
         if dataset_technical_name == 'umd_landsat_alerts':
-            instance_count = 12
-        else:
             instance_count = 6
+        else:
+            instance_count = 3
 
         s3_result_list = run_pip.run([config], instance_count=instance_count)
 
