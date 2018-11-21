@@ -1,3 +1,5 @@
+import shutil
+
 from utilities import google_sheet as gs, hadoop, api, util, climate, table_update
 
 
@@ -13,14 +15,18 @@ class Layer(object):
         self.dataset_technical_name = dataset_technical_name
         self.environment = environment
 
-        self.results_list = None
+        # we'll download the hadoop results to a temp dir on our local machine
         self.result_csv = None
+        self.temp_directory = None
+
+        # after we postprocess our outputs and upload the final tables to S3,
+        # we'll make a dict of {dataset_id: S3_csv} to update the API data
         self.update_api_dict = {}
 
     def calculate_summary_values(self):
 
         # run hadoop process to get table to summarize
-        self.result_csv = hadoop.pip(self.dataset_technical_name, self.environment)
+        self.result_csv, self.temp_directory = hadoop.pip(self.dataset_technical_name, self.environment)
 
         cp_api_endpoint_objects_list = gs.get_api_endpoint(self.dataset_technical_name, self.environment)
 
@@ -98,3 +104,11 @@ class Layer(object):
 
         # write outputs to final file (only push to s3 if prod or staging)
         util.write_outputs(final_df, api_endpoint_object.s3_url, self.environment)
+
+    def remove_temp_output_dir(self):
+        
+        # clean up our temp directories to save machine space,
+        # particularly on the GFW staging server
+        if self.temp_directory:
+            shutil.rmtree(self.temp_directory)
+

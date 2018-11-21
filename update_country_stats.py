@@ -24,6 +24,8 @@ def main():
 
     layer.push_to_gfw_api()
 
+    layer.remove_temp_output_dir()
+
 
 if __name__ == "__main__":
     main()

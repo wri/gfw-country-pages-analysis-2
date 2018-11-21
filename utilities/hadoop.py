@@ -39,12 +39,14 @@ def pip(dataset_technical_name, environment):
         # Grab s3 output
         s3_result = [x[0] for x in s3_result_list][0]
         local_file = download_result(s3_result)
+        temp_directory = os.path.dirname(local_file)
 
     else:
         # example terrai results - used for testing
         local_file = r'D:\scripts\gfw-country-pages-analysis-2\results\270f8e87-f0e8-4ade-a585-7213ed8b4c27\output.csv'
+        temp_directory = None
 
-    return local_file
+    return local_file, temp_directory
 
 
 def download_result(s3_path):
@@ -65,3 +67,4 @@ def download_result(s3_path):
     subprocess.check_call(cmd, shell=shell)
 
     return output_file
+
