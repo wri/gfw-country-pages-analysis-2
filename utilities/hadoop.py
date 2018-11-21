@@ -27,11 +27,13 @@ def pip(dataset_technical_name, environment):
     if environment in ['prod', 'staging']:
 
         if dataset_technical_name == 'umd_landsat_alerts':
-            instance_count = 6
+            instance_count = 1
+            cluster_name = 'glad_cluster'
         else:
-            instance_count = 3
+            instance_count = 2
+            cluster_name = 'fires_cluster'
 
-        s3_result_list = run_pip.run([config], instance_count=instance_count)
+        s3_result_list = run_pip.run([config], instance_count=instance_count, name=cluster_name)
 
         # Response from hadoop comes back as list of lists
         # Example: [[s3://gfw2-data/alerts-tsv/hadoop-jobs/bb858284-8c4d-4e00-8473-69cef650a7f3/output1.csv"]]
