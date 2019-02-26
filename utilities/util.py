@@ -3,7 +3,7 @@ import json
 import datetime
 import pandas as pd
 import subprocess
-
+import errno
 
 def load_json_from_token(file_name):
 
@@ -90,3 +90,14 @@ def julian_date_from_yrday(row):
     alert_date = datetime.datetime(alert_year, 1, 1) + datetime.timedelta(j_day)
 
     return alert_date
+
+
+def mkdir_p(path):
+    # copied from https://stackoverflow.com/questions/600268/mkdir-p-functionality-in-python
+    try:
+        os.makedirs(path)
+    except OSError as exc:  # Python >2.5
+        if exc.errno == errno.EEXIST and os.path.isdir(path):
+            pass
+        else:
+            raise
