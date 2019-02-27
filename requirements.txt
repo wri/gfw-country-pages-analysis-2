@@ -2,3 +2,4 @@ gspread
 oauth2client
 retrying
 pandas
+awscli
