@@ -3,3 +3,4 @@ oauth2client
 retrying
 pandas
 awscli
+boto3

@@ -120,7 +120,7 @@ def add_emissions_targets(df):
                         ['GNQ', 1.635, 4776.0],
                         ['PNG', 23.386, 62686.0],
                         ['BDI', 0.211, 1190.0],
-                        ['RWA', 0.252, 1257.0],
+                        ['RWA', 10.252, 1257.0],
                         ['SGP', 0.008, 42.0]]
 
     target_df = pd.DataFrame(target_2020_list)

@@ -1,7 +1,7 @@
 import argparse
 
 import layer as l
-from utilities import validate as val
+from utilities import validate as val, log
 
 
 def main():
@@ -12,7 +12,7 @@ def main():
                         help='the environment/config files to use')
     args = parser.parse_args()
 
-    print "\n{0}\n{1}\n{0}\n".format('*' * 50, 'GFW Country Pages Analysis v2.0')
+    log.info("\n{0}\n{1}\n{0}\n".format('*' * 50, 'GFW Country Pages Analysis v2.0'))
 
     val.validate_inputs(args.dataset)
 
