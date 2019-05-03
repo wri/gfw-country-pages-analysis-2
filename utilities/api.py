@@ -8,34 +8,41 @@ def sync(api_dataset_id, s3_url, environment):
 
     token = secrets.get_api_token(environment)
 
-    if environment == 'prod':
-        api_url = r'http://production-api.globalforestwatch.org'
+    if environment == "prod":
+        api_url = r"http://production-api.globalforestwatch.org"
 
-    elif environment == 'staging':
-        api_url = r'http://staging-api.globalforestwatch.org'
+    elif environment == "staging":
+        api_url = r"http://staging-api.globalforestwatch.org"
 
     else:
         pass
 
-    if environment in ['staging', 'prod']:
-        headers = {'Content-Type': 'application/json', 'Authorization': 'Bearer {0}'.format(token)}
+    if environment in ["staging", "prod"]:
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer {0}".format(token),
+        }
         overwrite_dataset(headers, api_url, api_dataset_id, s3_url)
 
 
-@retry(wait_exponential_multiplier=1000, wait_exponential_max=100000, stop_max_delay=100000)
-def make_request(headers, api_endpoint, request_type, payload=None, status_code_required=200):
+@retry(
+    wait_exponential_multiplier=1000, wait_exponential_max=100000, stop_max_delay=100000
+)
+def make_request(
+    headers, api_endpoint, request_type, payload=None, status_code_required=200
+):
 
-    if request_type == 'GET':
+    if request_type == "GET":
         r = requests.get(api_endpoint, headers=headers)
 
-    elif request_type == 'POST':
+    elif request_type == "POST":
         r = requests.post(api_endpoint, headers=headers, json=payload)
 
-    elif request_type == 'PATCH':
+    elif request_type == "PATCH":
         r = requests.patch(api_endpoint, headers=headers, json=payload)
 
     else:
-        raise ValueError('Unknown request_type {0}'.format(request_type))
+        raise ValueError("Unknown request_type {0}".format(request_type))
 
     if r.status_code == status_code_required:
 
@@ -54,22 +61,28 @@ def make_request(headers, api_endpoint, request_type, payload=None, status_code_
 def overwrite_dataset(headers, api_url, dataset_id, s3_url):
     log.info("Overwriting dataset: {0}".format(dataset_id))
 
-    status = get_status(headers,api_url,dataset_id)
-    name = get_name(headers,api_url,dataset_id)
+    status = get_status(headers, api_url, dataset_id)
+    name = get_name(headers, api_url, dataset_id)
 
     if status == "saved":
-        dataset_url = r'{0}/dataset/{1}'.format(api_url, dataset_id)
+        dataset_url = r"{0}/dataset/{1}".format(api_url, dataset_id)
 
         modify_attributes_payload = {"dataset": {"overwrite": True}}
-        make_request(headers, dataset_url, 'PATCH', modify_attributes_payload, 200)
+        make_request(headers, dataset_url, "PATCH", modify_attributes_payload, 200)
 
-        data_overwrite_url = r'{0}/data-overwrite'.format(dataset_url)
+        data_overwrite_url = r"{0}/data-overwrite".format(dataset_url)
         overwrite_payload = {"url": s3_url, "provider": "csv"}
 
-        make_request(headers, data_overwrite_url, 'POST', overwrite_payload, 204)
-        log.info("Successfully updated dataset \"{}\"".format(name), True)
+        make_request(headers, data_overwrite_url, "POST", overwrite_payload, 204)
+        log.info('Successfully updated dataset "{}"'.format(name), True)
     else:
-        log.error("Failed to update dataset \"{}\". Dataset with id {} not in saved status. Skipped.".format(name, dataset_id), True)
+        log.error(
+            'Failed to update dataset "{}". Dataset with id {} not in saved status. Skipped.'.format(
+                name, dataset_id
+            ),
+            True,
+            dataset_id,
+        )
 
 
 def get_status(headers, api_url, dataset_id):
