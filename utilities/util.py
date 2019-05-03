@@ -3,7 +3,8 @@ import json
 import datetime
 import pandas as pd
 import subprocess
-
+import errno
+import log
 
 def load_json_from_token(file_name):
 
@@ -37,7 +38,7 @@ def hadoopresult_to_df(result_csv, dataset_tech_name):
     df = pd.read_csv(result_csv, names=field_names)
 
     # convert string date to dt object
-    print 'Converting date string to object'
+    log.info('Converting date string to object')
     if dataset_tech_name in ['umd_landsat_alerts', 'terra_i_alerts']:
         # create column alert_date from julian_day and year
         # previously we would do df.apply with our julian_date_from_yrday function
@@ -71,7 +72,7 @@ def write_outputs(results_df, output_s3_path, environment):
     results_dir = os.path.join(root_dir, 'results')
 
     basename = os.path.basename(output_s3_path)
-    print "output s3 path: {}".format(output_s3_path)
+    log.info("output s3 path: {}".format(output_s3_path))
 
     results_csv = os.path.join(results_dir, basename)
 
@@ -90,3 +91,14 @@ def julian_date_from_yrday(row):
     alert_date = datetime.datetime(alert_year, 1, 1) + datetime.timedelta(j_day)
 
     return alert_date
+
+
+def mkdir_p(path):
+    # copied from https://stackoverflow.com/questions/600268/mkdir-p-functionality-in-python
+    try:
+        os.makedirs(path)
+    except OSError as exc:  # Python >2.5
+        if exc.errno == errno.EEXIST and os.path.isdir(path):
+            pass
+        else:
+            raise

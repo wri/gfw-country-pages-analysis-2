@@ -2,7 +2,8 @@ import os
 import sys
 import subprocess
 import uuid
-
+from util import mkdir_p
+import log
 import google_sheet as gs
 
 root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -56,10 +57,10 @@ def download_result(s3_path):
     # generate unique id
     guid = str(uuid.uuid4())
     output_dir = os.path.join(root_dir, 'results', guid)
-    os.mkdir(output_dir)
+    mkdir_p(output_dir)
 
     output_file = os.path.join(output_dir, 'output.csv')
-    print 'Downloading {} to {}'.format(s3_path, output_file)
+    log.info('Downloading {} to {}'.format(s3_path, output_file))
 
     shell = False
     if os.name == 'nt':
@@ -69,4 +70,3 @@ def download_result(s3_path):
     subprocess.check_call(cmd, shell=shell)
 
     return output_file
-
