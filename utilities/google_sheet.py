@@ -1,7 +1,7 @@
 import os
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
-
+import secrets
 
 # https://docs.google.com/spreadsheets/d/174wtlPMWENa1FCYXHqzwvZB5vi7DjLwX-oQjaUEdxzo/edit#gid=923735044
 dataset_lookup_key = r'174wtlPMWENa1FCYXHqzwvZB5vi7DjLwX-oQjaUEdxzo'
@@ -66,11 +66,11 @@ def _open_spreadsheet(sheet_name):
 
     # Updated for oauth2client
     # http://gspread.readthedocs.org/en/latest/oauth2.html
-    root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    spreadsheet_file = os.path.join(root_dir, 'tokens', 'spreadsheet.json')
+
+    keyfile_dict = secrets.get_google_credentials("gfw-sync")
 
     cred_list = ['https://spreadsheets.google.com/feeds']
-    credentials = ServiceAccountCredentials.from_json_keyfile_name(spreadsheet_file, cred_list)
+    credentials = ServiceAccountCredentials.from_json_keyfile_dict(keyfile_dict, cred_list)
 
     gc = gspread.authorize(credentials)
     wks = gc.open_by_key(dataset_lookup_key).worksheet(sheet_name)
