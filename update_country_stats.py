@@ -15,7 +15,7 @@ def main():
         log.debug("parse_args = " + str(parser))
         args = parser.parse_args()
 
-        log.info("Start updating {} country stats".format(args.dataset), True)
+        log.info("Start updating {} country stats".format(args.dataset))
         log.info("\n{0}\n{1}\n{0}\n".format('*' * 50, 'GFW Country Pages Analysis v2.0'))
 
         val.validate_inputs(args.dataset)
@@ -29,7 +29,7 @@ def main():
         layer.push_to_gfw_api()
 
         layer.remove_temp_output_dir()
-        log.info("Successfully updated {} country stats.".format(args.dataset), True)
+        log.info("Successfully updated {} country stats.".format(args.dataset))
     except Exception as e:
         log.error("Failed to update {} country stats. Please see log files for more info".format(args.dataset), True)
         log.error(e)
