@@ -5,13 +5,14 @@ from utilities import validate as val, log
 
 
 def main():
-    try:
 
+    try:
         # Parse commandline arguments
         parser = argparse.ArgumentParser(description='Set input dataset environment.')
         parser.add_argument('--dataset', '-d', required=True, help='the tech title of the dataset that has been updated')
         parser.add_argument('--environment', '-e', required=True, choices=('prod', 'staging', 'test'),
                             help='the environment/config files to use')
+        log.debug("parse_args = " + str(parser))
         args = parser.parse_args()
 
         log.info("Start updating () country stats".format(args.dataset), True)
