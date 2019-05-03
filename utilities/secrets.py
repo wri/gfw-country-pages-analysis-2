@@ -14,7 +14,6 @@ def get_google_credentials(account):
 
 def get_api_token(env):
 
-    print env
     response = client.get_secret_value(
         SecretId="gfw-api/{}-token".format(env)
     )

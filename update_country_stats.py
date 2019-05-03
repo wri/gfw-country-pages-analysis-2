@@ -15,7 +15,7 @@ def main():
         log.debug("parse_args = " + str(parser))
         args = parser.parse_args()
 
-        log.info("Start updating () country stats".format(args.dataset), True)
+        log.info("Start updating {} country stats".format(args.dataset), True)
         log.info("\n{0}\n{1}\n{0}\n".format('*' * 50, 'GFW Country Pages Analysis v2.0'))
 
         val.validate_inputs(args.dataset)
