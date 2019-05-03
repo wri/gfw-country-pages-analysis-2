@@ -57,5 +57,8 @@ def overwrite_dataset(headers, api_url, dataset_id, s3_url):
 
     data_overwrite_url = r'{0}/data-overwrite'.format(dataset_url)
     overwrite_payload = {"url": s3_url, "provider": "csv"}
+    print 'Headers : ' +  str(headers)
+    print 'Data Overwrite : ' + str(data_overwrite_url)
+    print 'Overwrite Payload : ' + str(overwrite_payload)
 
     make_request(headers, data_overwrite_url, 'POST', overwrite_payload, 204)

@@ -7,10 +7,15 @@ from utilities import validate as val
 def main():
     # Parse commandline arguments
     parser = argparse.ArgumentParser(description='Set input dataset environment.')
+    #print 'parser = ' + str(parser)
     parser.add_argument('--dataset', '-d', required=True, help='the tech title of the dataset that has been updated')
     parser.add_argument('--environment', '-e', required=True, choices=('prod', 'staging', 'test'),
                         help='the environment/config files to use')
-    args = parser.parse_args()
+    print 'parse_args = ' + str(parser)
+    #args = parser.parse_args()
+    #args = argparse.Namespace(dataset='fires_report', environment='test')
+    args = argparse.Namespace(dataset='fires_report', environment='prod')
+    #print 'args : ' + str(args)
 
     print "\n{0}\n{1}\n{0}\n".format('*' * 50, 'GFW Country Pages Analysis v2.0')
 

@@ -107,8 +107,10 @@ def get_api_endpoint(forest_change_dataset, environment):
             summaries_to_create.append(api_endpoint_def)
 
     if not api_endpoint_def:
+        #raise ValueError("No matching record in the google "
+        #                 "sheet for datasets: {}, {} and version {}".format(dataset1, dataset2, environment))
         raise ValueError("No matching record in the google "
-                         "sheet for datasets: {}, {} and version {}".format(dataset1, dataset2, environment))
+                 "sheet for datasets: {} and version {}".format(forest_change_dataset, environment))
 
     return summaries_to_create
 
