@@ -1,10 +1,10 @@
 import pandas as pd
-
+import log
 
 def climate_table_update(df):
     df = df.copy()
 
-    print 'selecting gadm28/admin polygons and confirmed alerts only'
+    log.info("Selecting gadm28/admin polygons and confirmed alerts only")
     df = df[(df.polyname.isin(['gadm28', 'admin'])) & (df.confidence == 3)]
 
     # change confidence to user-friendly label (not '3')
@@ -20,17 +20,17 @@ def climate_table_update(df):
     country_list = ['BRA', 'PER', 'COG', 'UGA', 'TLS', 'CMR', 'BDI',
                     'GAB', 'BRN', 'CAF', 'GNQ', 'PNG', 'SGP', 'RWA']
 
-    print 'filtering to select country list, or where climate_mask == 1'
+    log.info("Filtering to select country list, or where climate_mask == 1")
     df = df[(df['climate_mask'] == 1) | (df['iso'].isin(country_list))]
 
     # 1/1/2016 should be categorized as week 53 of 2015. This code creates that proper combination of
     # week# and year based on ISO calendar
-    print 'calculating week and year for each date'
+    log.info("Calculating week and year for each date")
     df['week'] = df.alert_date.dt.week
     df['year'] = df.alert_date.dt.year
 
     # group by week and year, then sum
-    print 'grouping by week and year, summing alerts, above_ground_carbon_loss and loss_ha'
+    log.info("Grouping by week and year, summing alerts, above_ground_carbon_loss and loss_ha")
     groupby_list = ['iso', 'adm1', 'week', 'year', 'confidence']
     sum_list = ['alerts', 'above_ground_carbon_loss', 'loss_ha']
     df_groupby = df.groupby(groupby_list)[sum_list].sum().reset_index()
