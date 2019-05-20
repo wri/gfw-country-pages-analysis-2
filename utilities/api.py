@@ -5,7 +5,6 @@ import log
 
 
 def sync(api_dataset_id, s3_url, environment):
-
     token = secrets.get_api_token(environment)
 
     if environment == "prod":
@@ -29,9 +28,8 @@ def sync(api_dataset_id, s3_url, environment):
     wait_exponential_multiplier=1000, wait_exponential_max=100000, stop_max_delay=100000
 )
 def make_request(
-    headers, api_endpoint, request_type, payload=None, status_code_required=200
+        headers, api_endpoint, request_type, payload=None, status_code_required=200
 ):
-
     if request_type == "GET":
         r = requests.get(api_endpoint, headers=headers)
 
@@ -59,47 +57,61 @@ def make_request(
 
 
 def overwrite_dataset(headers, api_url, dataset_id, s3_url):
+
     log.info("Overwriting dataset: {0}".format(dataset_id))
+    dataset_url = r"{0}/dataset/{1}".format(api_url, dataset_id)
 
-    status = get_status(headers, api_url, dataset_id)
-    name = get_name(headers, api_url, dataset_id)
+    status = _get_status(headers, dataset_url)
+    name = _get_name(headers, dataset_url)
 
-    if status == "saved":
-        dataset_url = r"{0}/dataset/{1}".format(api_url, dataset_id)
+    if status != "saved":
 
-        modify_attributes_payload = {"dataset": {"overwrite": True}}
-        make_request(headers, dataset_url, "PATCH", modify_attributes_payload, 200)
-
-        data_overwrite_url = r"{0}/data-overwrite".format(dataset_url)
-        overwrite_payload = {"url": s3_url, "provider": "csv"}
-
-        log.debug("Headers : " +  str(headers))
-        log.debug("Data Overwrite : " + str(data_overwrite_url))
-        log.debug("Overwrite Payload : " + str(overwrite_payload))
-        
-        make_request(headers, data_overwrite_url, "POST", overwrite_payload, 204)
-        log.info('Successfully updated dataset "{}"'.format(name), True)
-    else:
-        log.error(
-            'Failed to update dataset "{}". Dataset with id {} not in saved status. Skipped.'.format(
+        log.warning(
+            'There was an issue while updating dataset "{}". Dataset with id {} not in saved status. Reset status.'.format(
                 name, dataset_id
             ),
             True,
             dataset_id,
         )
+        _patch_status(headers, dataset_url)
+
+    _overwrite_dataset(headers, dataset_url, s3_url, name)
 
 
-def get_status(headers, api_url, dataset_id):
-    log.info("Get dataset status: {0}".format(dataset_id))
-    dataset_url = r"{0}/dataset/{1}".format(api_url, dataset_id)
+def _get_status(headers, dataset_url):
+    log.info("Get dataset status: {0}".format(dataset_url))
 
     response = make_request(headers, dataset_url, "GET", status_code_required=200)
     return response["data"]["attributes"]["status"]
 
 
-def get_name(headers, api_url, dataset_id):
-    log.info("Get dataset name: {0}".format(dataset_id))
-    dataset_url = r"{0}/dataset/{1}".format(api_url, dataset_id)
+def _get_name(headers, dataset_url):
+    log.info("Get dataset name: {0}".format(dataset_url))
 
     response = make_request(headers, dataset_url, "GET", status_code_required=200)
     return response["data"]["attributes"]["name"]
+
+
+def _patch_overwrite(headers, dataset_url):
+    modify_attributes_payload = {"overwrite": "true"}
+    make_request(headers, dataset_url, "PATCH", modify_attributes_payload, 200)
+
+
+def _patch_status(headers, dataset_url):
+    modify_attributes_payload = {"status": "saved"}
+    make_request(headers, dataset_url, "PATCH", modify_attributes_payload, 200)
+
+
+def _overwrite_dataset(headers, dataset_url, s3_url, name):
+    _patch_overwrite(headers, dataset_url)
+
+    data_overwrite_url = r"{0}/data-overwrite".format(dataset_url)
+    overwrite_payload = {"url": s3_url, "provider": "csv"}
+
+    log.debug("Headers : " + str(headers))
+    log.debug("Data Overwrite : " + str(data_overwrite_url))
+    log.debug("Overwrite Payload : " + str(overwrite_payload))
+
+    make_request(headers, data_overwrite_url, "POST", overwrite_payload, 204)
+    log.info('Successfully updated dataset "{}"'.format(name), True)
+
