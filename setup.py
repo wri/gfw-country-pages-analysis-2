@@ -7,7 +7,7 @@ setup(
     author="Charlie Hoffman",
     license="MIT",
     packages=find_packages(),
-    data_files=[("config",
+    data_files=[("",
                  ["gfw_country_pages_analysis_2/config/fires_country_pages_prod.ini",
                   "gfw_country_pages_analysis_2/config/fires_country_pages_staging.ini",
                   "gfw_country_pages_analysis_2/config/fires_report_prod.ini",
