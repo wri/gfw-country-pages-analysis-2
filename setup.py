@@ -17,7 +17,9 @@ setup(
         "rsa<=3.5.0,>=3.1.2",
         "hadoop_pip @ git+https://github.com/wri/hadoop_pip@v1.0.0#egg=hadoop_pip",
     ],
-    scripts=[
-        "gfw_country_pages_analysis_2/update_country_stats.py",
-    ],
+    entry_points={
+        "console_scripts": [
+            "update_country_stats=gfw_country_pages_analysis_2/update_country_stats:main",
+        ]
+    }
 )
