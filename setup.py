@@ -19,7 +19,7 @@ setup(
     ],
     entry_points={
         "console_scripts": [
-            "update_country_stats=gfw_country_pages_analysis_2/update_country_stats:main",
+            "update_country_stats=gfw_country_pages_analysis_2.update_country_stats:main",
         ]
     }
 )
