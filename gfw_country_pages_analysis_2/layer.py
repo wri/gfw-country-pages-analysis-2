@@ -1,6 +1,6 @@
 import shutil
 
-from utilities import google_sheet as gs, hadoop, api, util, climate, table_update, log
+from gfw_country_pages_analysis_2.utilities import google_sheet as gs, hadoop, api, util, climate, table_update, log
 
 
 class Layer(object):

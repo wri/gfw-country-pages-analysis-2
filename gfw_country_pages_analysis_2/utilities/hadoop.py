@@ -5,18 +5,6 @@ import uuid
 from util import mkdir_p
 import log
 import google_sheet as gs
-
-root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-external_dir = os.path.dirname(root_dir)
-
-sys.path.append(external_dir)
-
-# The hadoop_pip package must be in the external dir referenced above, i.e.:
-# Make sure that the folder is hadoop_pip, not hadoop-pip on your local file system
-# - Desktop
-#    - gfw-country-pages-analysis-2
-#    - hadoop_pip
-
 from hadoop_pip import run_pip
 
 

@@ -1,7 +1,7 @@
 import argparse
 
-import layer as l
-from utilities import validate as val, log
+from gfw_country_pages_analysis_2 import layer as l
+from gfw_country_pages_analysis_2.utilities import validate as val, log
 
 
 def main():
