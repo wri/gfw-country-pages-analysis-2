@@ -71,6 +71,7 @@ def write_outputs(results_df, output_s3_path, environment):
 
     root_dir = sys.prefix
     results_dir = os.path.join(root_dir, 'results')
+    mkdir_p(results_dir)
 
     basename = os.path.basename(output_s3_path)
     log.info("output s3 path: {}".format(output_s3_path))

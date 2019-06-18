@@ -26,7 +26,7 @@ class Layer(object):
     def calculate_summary_values(self):
 
         # run hadoop process to get table to summarize
-        self.result_csv, self.temp_directory = hadoop.pip(
+        self.result_csv, self.temp_directory =  hadoop.pip(
             self.dataset_technical_name, self.environment
         )
 
