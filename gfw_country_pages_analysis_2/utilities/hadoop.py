@@ -44,7 +44,7 @@ def download_result(s3_path):
 
     # generate unique id
     guid = str(uuid.uuid4())
-    output_dir = os.path.join(root_dir, 'results', guid)
+    output_dir = os.path.join(sys.prefix, 'results', guid)  # TODO: Figure out a better location for this
     mkdir_p(output_dir)
 
     output_file = os.path.join(output_dir, 'output.csv')

@@ -24,7 +24,7 @@ setup(
         "awscli<=1.17.0,>=1.16.176",
         "boto3<=1.10.0,>=1.9.166",
         "rsa<=3.5.0,>=3.1.2",
-        "hadoop_pip @ git+https://github.com/wri/hadoop_pip@v1.0.0#egg=hadoop_pip",
+        "hadoop_pip @ git+https://github.com/wri/hadoop_pip@v1.0.1#egg=hadoop_pip",
     ],
     entry_points={
         "console_scripts": [

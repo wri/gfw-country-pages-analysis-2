@@ -1,4 +1,5 @@
 import os
+import sys
 import json
 import datetime
 import pandas as pd
@@ -8,7 +9,7 @@ import log
 
 def load_json_from_token(file_name):
 
-    root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    root_dir = sys.prefix
     token_file = os.path.join(root_dir, 'tokens', file_name)
 
     with open(token_file) as data_file:
@@ -68,7 +69,7 @@ def hadoopresult_to_df(result_csv, dataset_tech_name):
 
 def write_outputs(results_df, output_s3_path, environment):
 
-    root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    root_dir = sys.prefix
     results_dir = os.path.join(root_dir, 'results')
 
     basename = os.path.basename(output_s3_path)
