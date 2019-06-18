@@ -1,6 +1,6 @@
 import shutil
 
-from utilities import google_sheet as gs, hadoop, api, util, climate, table_update, log
+from gfw_country_pages_analysis_2.utilities import google_sheet as gs, hadoop, api, util, climate, table_update, log
 
 
 class Layer(object):
@@ -26,7 +26,7 @@ class Layer(object):
     def calculate_summary_values(self):
 
         # run hadoop process to get table to summarize
-        self.result_csv, self.temp_directory = hadoop.pip(
+        self.result_csv, self.temp_directory =  hadoop.pip(
             self.dataset_technical_name, self.environment
         )
 

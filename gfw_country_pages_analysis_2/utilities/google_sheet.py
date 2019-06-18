@@ -2,6 +2,7 @@ import os
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 import secrets
+import sys
 
 # https://docs.google.com/spreadsheets/d/174wtlPMWENa1FCYXHqzwvZB5vi7DjLwX-oQjaUEdxzo/edit#gid=923735044
 dataset_lookup_key = r'174wtlPMWENa1FCYXHqzwvZB5vi7DjLwX-oQjaUEdxzo'
@@ -49,7 +50,7 @@ def get_hadoop_config(input_dataset_name, environment):
         row_tuple = (row_dict['forest_dataset'], row_dict['version'])
 
         if set(row_tuple) == set(input_tuple):
-            root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            root_dir = sys.prefix  # os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
             config_dir = os.path.join(root_dir, 'config')
 
             hadoop_filename = row_dict['config_file']
