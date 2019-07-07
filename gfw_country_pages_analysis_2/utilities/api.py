@@ -28,7 +28,7 @@ def sync(api_dataset_id, s3_url, environment):
     wait_exponential_multiplier=1000, wait_exponential_max=100000, stop_max_delay=100000
 )
 def make_request(
-        headers, api_endpoint, request_type, payload=None, status_code_required=200
+    headers, api_endpoint, request_type, payload=None, status_code_required=200
 ):
     if request_type == "GET":
         r = requests.get(api_endpoint, headers=headers)
@@ -114,4 +114,3 @@ def _overwrite_dataset(headers, dataset_url, s3_url, name):
 
     make_request(headers, data_overwrite_url, "POST", overwrite_payload, 204)
     log.info('Successfully updated dataset "{}"'.format(name), True)
-

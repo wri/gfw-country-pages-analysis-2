@@ -1,6 +1,7 @@
 import google_sheet as gs
 import log
 
+
 def validate_inputs(dataset):
 
     valid_datasets = gs.get_valid_inputs()

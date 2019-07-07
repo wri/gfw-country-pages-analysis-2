@@ -5,12 +5,12 @@ import secrets
 import sys
 
 # https://docs.google.com/spreadsheets/d/174wtlPMWENa1FCYXHqzwvZB5vi7DjLwX-oQjaUEdxzo/edit#gid=923735044
-dataset_lookup_key = r'174wtlPMWENa1FCYXHqzwvZB5vi7DjLwX-oQjaUEdxzo'
+dataset_lookup_key = r"174wtlPMWENa1FCYXHqzwvZB5vi7DjLwX-oQjaUEdxzo"
 
 
 def get_valid_inputs():
 
-    input_datasets = get_column_values('api_endpoint_lookup', 'forest_dataset')
+    input_datasets = get_column_values("api_endpoint_lookup", "forest_dataset")
 
     return list(set(input_datasets))
 
@@ -41,19 +41,21 @@ def get_hadoop_config(input_dataset_name, environment):
     hadoop_config = None
     input_tuple = (input_dataset_name, environment)
 
-    hadoop_rows = get_all_gdoc_rows('hadoop')
+    hadoop_rows = get_all_gdoc_rows("hadoop")
     header_row = hadoop_rows[0]
 
     for row in hadoop_rows[1:]:
         row_dict = dict(zip(header_row, row))
 
-        row_tuple = (row_dict['forest_dataset'], row_dict['version'])
+        row_tuple = (row_dict["forest_dataset"], row_dict["version"])
 
         if set(row_tuple) == set(input_tuple):
-            root_dir = sys.prefix  # os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-            config_dir = os.path.join(root_dir, 'config')
+            root_dir = (
+                sys.prefix
+            )  # os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            config_dir = os.path.join(root_dir, "config")
 
-            hadoop_filename = row_dict['config_file']
+            hadoop_filename = row_dict["config_file"]
             hadoop_config = os.path.join(config_dir, hadoop_filename)
 
     return hadoop_config
@@ -70,8 +72,10 @@ def _open_spreadsheet(sheet_name):
 
     keyfile_dict = secrets.get_google_credentials("gfw-sync")
 
-    cred_list = ['https://spreadsheets.google.com/feeds']
-    credentials = ServiceAccountCredentials.from_json_keyfile_dict(keyfile_dict, cred_list)
+    cred_list = ["https://spreadsheets.google.com/feeds"]
+    credentials = ServiceAccountCredentials.from_json_keyfile_dict(
+        keyfile_dict, cred_list
+    )
 
     gc = gspread.authorize(credentials)
     wks = gc.open_by_key(dataset_lookup_key).worksheet(sheet_name)
@@ -86,7 +90,7 @@ class SheetLayerDef(object):
 
 
 def get_api_endpoint(forest_change_dataset, environment):
-    gdoc_data_rows = get_all_gdoc_rows('api_endpoint_lookup')
+    gdoc_data_rows = get_all_gdoc_rows("api_endpoint_lookup")
 
     header_row = gdoc_data_rows[0]
 
@@ -98,8 +102,8 @@ def get_api_endpoint(forest_change_dataset, environment):
 
         row_dict = dict(zip(header_row, row))
 
-        forest_match = row_dict['forest_dataset'] == forest_change_dataset
-        version_match = row_dict['version'] == environment
+        forest_match = row_dict["forest_dataset"] == forest_change_dataset
+        version_match = row_dict["version"] == environment
 
         if forest_match and version_match:
 
@@ -108,10 +112,13 @@ def get_api_endpoint(forest_change_dataset, environment):
             summaries_to_create.append(api_endpoint_def)
 
     if not api_endpoint_def:
-        #raise ValueError("No matching record in the google "
+        # raise ValueError("No matching record in the google "
         #                 "sheet for datasets: {}, {} and version {}".format(dataset1, dataset2, environment))
-        raise ValueError("No matching record in the google "
-                 "sheet for datasets: {} and version {}".format(forest_change_dataset, environment))
+        raise ValueError(
+            "No matching record in the google "
+            "sheet for datasets: {} and version {}".format(
+                forest_change_dataset, environment
+            )
+        )
 
     return summaries_to_create
-

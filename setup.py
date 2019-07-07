@@ -7,15 +7,21 @@ setup(
     author="Charlie Hoffman",
     license="MIT",
     packages=find_packages(),
-    data_files=[("config",
-                 ["config/fires_country_pages_prod.ini",
-                  "config/fires_country_pages_staging.ini",
-                  "config/fires_report_prod.ini",
-                  "config/fires_report_staging.ini",
-                  "config/glad_prod.ini",
-                  "config/glad_staging.ini",
-                  "config/terrai_prod.ini",
-                  "config/terrai_staging.ini"])],
+    data_files=[
+        (
+            "config",
+            [
+                "config/fires_country_pages_prod.ini",
+                "config/fires_country_pages_staging.ini",
+                "config/fires_report_prod.ini",
+                "config/fires_report_staging.ini",
+                "config/glad_prod.ini",
+                "config/glad_staging.ini",
+                "config/terrai_prod.ini",
+                "config/terrai_staging.ini",
+            ],
+        )
+    ],
     install_requires=[
         "gspread<=3.2.0,>=3.1.0",
         "oauth2client<=4.2.0,>=4.1.3",
@@ -28,7 +34,7 @@ setup(
     ],
     entry_points={
         "console_scripts": [
-            "update_country_stats=gfw_country_pages_analysis_2.update_country_stats:main",
+            "update_country_stats=gfw_country_pages_analysis_2.update_country_stats:main"
         ]
-    }
+    },
 )
