@@ -4,19 +4,11 @@ WORKDIR /var/task
 ENV WORKDIR /var/task
 ENV LAMBDANAME gfw-glad-country-pages-update-trigger
 
-RUN mkdir -p packages/ \
-    && pip boto3 -t packages
-
 # Copy initial source codes into container.
 COPY lambda_function.py "$WORKDIR/lambda_function.py"
 
-# Compress all source code
-RUN cd $WORKDIR/packages && \
-     zip -9qyr $WORKDIR/lambda.zip .
-
 RUN cd $WORKDIR && \
-    zip -g lambda.zip lambda_function.py && \
-    zip -g lambda.zip bootstrap.sh
+    zip -9qyr lambda.zip lambda_function.py
 
 CMD aws lambda update-function-code --function-name $LAMBDANAME --zip-file fileb://lambda.zip
 #CMD aws lambda create-function --function-name $LAMBDANAME \
