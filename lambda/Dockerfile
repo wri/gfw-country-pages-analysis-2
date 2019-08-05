@@ -21,5 +21,5 @@ CMD aws lambda update-function-code --function-name $LAMBDANAME --zip-file fileb
 #                                --tags "Project=Global Forest Watch"
 #                                --timeout 3
 
-# docker build -t gfw/gfw-glad-country-update .
-# docker run --rm -e AWS_ACCESS_KEY_ID -e AWS_SECRET_ACCESS_KEY -e AWS_DEFAULT_REGION  gfw/gfw-glad-country-update
+# docker build -t gfw/glad-country-pages-update-trigger .
+# docker run --rm -e AWS_ACCESS_KEY_ID -e AWS_SECRET_ACCESS_KEY -e AWS_DEFAULT_REGION  gfw/glad-country-pages-update-trigger
