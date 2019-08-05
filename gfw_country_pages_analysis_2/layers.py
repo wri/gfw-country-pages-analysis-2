@@ -1,6 +1,14 @@
 import shutil
 
-from gfw_country_pages_analysis_2.utilities import google_sheet as gs, hadoop, api, util, climate, table_update, log
+from gfw_country_pages_analysis_2.utilities import (
+    google_sheet as gs,
+    hadoop,
+    api,
+    util,
+    climate,
+    table_update,
+    log,
+)
 
 
 class Layer(object):
@@ -23,10 +31,12 @@ class Layer(object):
         # we'll make a dict of {dataset_id: S3_csv} to update the API data
         self.update_api_dict = {}
 
+        self._initialize()
+
     def calculate_summary_values(self):
 
         # run hadoop process to get table to summarize
-        self.result_csv, self.temp_directory =  hadoop.pip(
+        self.result_csv, self.temp_directory = hadoop.pip(
             self.dataset_technical_name, self.environment
         )
 
@@ -122,7 +132,7 @@ class Layer(object):
             else:
                 log.warning(
                     "No valid forest type found"
-                )  ## need to work on this exception
+                )  # need to work on this exception
 
         else:
             final_df = df
@@ -136,3 +146,33 @@ class Layer(object):
         # particularly on the GFW staging server
         if self.temp_directory:
             shutil.rmtree(self.temp_directory)
+
+    def finalize(self, failed=False):
+        pass
+
+    def _initialize(self):
+        pass
+
+
+class GladLayer(Layer):
+    # TODO: This is just a basic sub type. There are several other methods that we still need to pull out.
+
+    def finalize(self, failed=False):
+
+        if self.environment != "prod":
+            test = True
+        else:
+            test = False
+
+        if failed:
+            status = "HADOOP FAILED"
+        else:
+            status = "COMPLETED"
+
+        util.update_status(status, test)
+
+    def _initialize(self):
+        test = False
+        if self.environment != "prod":
+            test = True
+        util.update_status("HADOOP RUNNING", test)
