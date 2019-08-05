@@ -31,6 +31,8 @@ class Layer(object):
         # we'll make a dict of {dataset_id: S3_csv} to update the API data
         self.update_api_dict = {}
 
+        self._initialize()
+
     def calculate_summary_values(self):
 
         # run hadoop process to get table to summarize
@@ -144,3 +146,33 @@ class Layer(object):
         # particularly on the GFW staging server
         if self.temp_directory:
             shutil.rmtree(self.temp_directory)
+
+    def finalize(self, failed=False):
+        pass
+
+    def _initialize(self):
+        pass
+
+
+class GladLayer(Layer):
+    # TODO: This is just a basic sub type. There are several other methods that we still need to pull out.
+
+    def finalize(self, failed=False):
+
+        if self.environment != "prod":
+            test = True
+        else:
+            test = False
+
+        if failed:
+            status = "HADOOP FAILED"
+        else:
+            status = "COMPLETED"
+
+        util.update_status(status, test)
+
+    def _initialize(self):
+        test = False
+        if self.environment != "prod":
+            test = True
+        util.update_status("HADOOP RUNNING", test)

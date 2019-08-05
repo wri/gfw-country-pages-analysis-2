@@ -6,6 +6,7 @@ import pandas as pd
 import subprocess
 import errno
 import log
+import boto3
 
 
 def load_json_from_token(file_name):
@@ -144,3 +145,14 @@ def mkdir_p(path):
             pass
         else:
             raise
+
+
+def update_status(status, test=True):
+    s3 = boto3.resource("s3")
+    status_file = s3.Object(
+        "gfw2-data", "forest_change/umd_landsat_alerts/prod/events/status"
+    )
+
+    if not test:
+        status_file.put(Body=status)
+    return

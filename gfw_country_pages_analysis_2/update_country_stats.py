@@ -1,7 +1,8 @@
 import argparse
 
-from gfw_country_pages_analysis_2 import layer as ly
+from gfw_country_pages_analysis_2.layers import Layer, GladLayer
 from gfw_country_pages_analysis_2.utilities import validate as val, log
+from gfw_country_pages_analysis_2.factory import LayerFactory
 
 
 def main():
@@ -32,16 +33,29 @@ def main():
 
         val.validate_inputs(args.dataset)
 
+        factory = LayerFactory()
+        factory.register_layer("umd_landsat_alerts", GladLayer)
+        factory.register_layer("fires_report", Layer)
+        factory.register_layer("fires_country_pages", Layer)
+        factory.register_layer("terra_i_alerts", Layer)
+
         # Build layer based on this config table:
         # https://docs.google.com/spreadsheets/d/174wtlPMWENa1FCYXHqzwvZB5vi7DjLwX-oQjaUEdxzo/edit#gid=923735044
-        layer = ly.Layer(args.dataset, args.environment)
+        layer = factory.get_layer(args.dataset, args.environment)
 
-        layer.calculate_summary_values()
+        try:
+            layer.calculate_summary_values()
 
-        layer.push_to_gfw_api()
+            layer.push_to_gfw_api()
 
-        layer.remove_temp_output_dir()
-        log.info("Successfully updated {} country stats.".format(args.dataset))
+            layer.remove_temp_output_dir()
+
+            layer.finalize()
+
+            log.info("Successfully updated {} country stats.".format(args.dataset))
+        except Exception as e:
+            layer.finalize(failed=True)
+            raise e
     except Exception as e:
         log.error(
             "Failed to update {} country stats. Please see log files for more info".format(
