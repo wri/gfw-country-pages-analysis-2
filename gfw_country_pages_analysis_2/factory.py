@@ -9,4 +9,4 @@ class LayerFactory:
         layer = self._layers.get(name)
         if not layer:
             raise ValueError(format)
-        return layer(env)
+        return layer(name, env)

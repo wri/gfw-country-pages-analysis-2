@@ -63,7 +63,7 @@ def main():
             ),
             True,
         )
-        log.error(e)
+        log.exception(e)
         raise e
 
 
