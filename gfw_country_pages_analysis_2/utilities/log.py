@@ -47,6 +47,12 @@ def critical(message, slack=False, dataset_id=None):
         slack_webhook("CRITICAL", message, dataset_id)
 
 
+def exception(message, slack=False, dataset_id=None):
+    logger.exception(message)
+    if slack:
+        slack_webhook("ERROR", message, dataset_id)
+
+
 def slack_webhook(level, message, dataset_id=None):
 
     app = "GFW SYNC country page analysis 2"

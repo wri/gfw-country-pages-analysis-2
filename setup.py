@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="gfw_country_pages_analysis_2",
-    version="1.0.4",
+    version="1.0.6",
     description="Tool to create summary tables for GFW country pages",
     author="Charlie Hoffman",
     license="MIT",
