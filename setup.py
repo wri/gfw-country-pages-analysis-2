@@ -2,9 +2,9 @@ from setuptools import setup, find_packages
 
 setup(
     name="gfw_country_pages_analysis_2",
-    version="1.0.6",
+    version="1.0.7",
     description="Tool to create summary tables for GFW country pages",
-    author="Charlie Hoffman",
+    author="Charlie Hoffman, Thomas Maschler",
     license="MIT",
     packages=find_packages(),
     data_files=[
@@ -30,7 +30,7 @@ setup(
         "awscli~=1.16.176",
         "boto3~=1.9.166",
         "rsa<=3.5.0,>=3.1.2",
-        "hadoop_pip @ git+https://github.com/wri/hadoop_pip@v1.0.1#egg=hadoop_pip",
+        "hadoop_pip @ git+https://github.com/wri/hadoop_pip@v1.0.2#egg=hadoop_pip",
     ],
     entry_points={
         "console_scripts": [
