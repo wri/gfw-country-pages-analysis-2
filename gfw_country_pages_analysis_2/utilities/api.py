@@ -67,13 +67,13 @@ def overwrite_dataset(headers, api_url, dataset_id, s3_url):
     if status != "saved":
 
         log.warning(
-            'There was an issue while updating dataset "{}". Dataset with id {} not in saved status. Reset status.'.format(
+            'There was an issue while updating dataset "{}". Dataset with id {} not in saved status. Recover dataset.'.format(
                 name, dataset_id
             ),
             True,
             dataset_id,
         )
-        _patch_status(headers, dataset_url)
+        _recover(headers, dataset_url)
 
     _overwrite_dataset(headers, dataset_url, s3_url, name)
 
@@ -97,9 +97,10 @@ def _patch_overwrite(headers, dataset_url):
     make_request(headers, dataset_url, "PATCH", modify_attributes_payload, 200)
 
 
-def _patch_status(headers, dataset_url):
-    modify_attributes_payload = {"status": "saved"}
-    make_request(headers, dataset_url, "PATCH", modify_attributes_payload, 200)
+def _recover(headers, dataset_url):
+    make_request(
+        headers, "{}/recover".format(dataset_url), "POST", status_code_required=200
+    )
 
 
 def _overwrite_dataset(headers, dataset_url, s3_url, name):
